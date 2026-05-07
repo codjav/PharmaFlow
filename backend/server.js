@@ -8,20 +8,7 @@ app.use(express.json());
 
 const db = new sqlite3.Database("./pharmacy.db");
 db.serialize(() => {
-    // 💊 Medicines Table
-    db.run(`
-        CREATE TABLE IF NOT EXISTS medicines (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            barcode TEXT UNIQUE,
-            mrp REAL NOT NULL,
-            dr_price NOT NULL,
-            price REAL NOT NULL,
-            quantity INTEGER DEFAULT 0,
-            expiry_date TEXT
-        )
-    `);
-
+    db.run("PRAGMA foreign_keys = ON;");
     // 🏢 Suppliers Table
     db.run(`
         CREATE TABLE IF NOT EXISTS suppliers (
@@ -29,6 +16,24 @@ db.serialize(() => {
             name TEXT NOT NULL,
             phone TEXT,
             address TEXT
+        )
+    `);
+
+    // 💊 Medicines Table
+    db.run(`
+        CREATE TABLE IF NOT EXISTS medicines (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            category TEXT,
+            company TEXT NOT NULL,
+            supplier_id INTEGER,
+            FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
+            barcode TEXT UNIQUE,
+            mrp REAL NOT NULL,
+            dr_price REAL NOT NULL,
+            price REAL NOT NULL,
+            quantity INTEGER DEFAULT 0,
+            expiry_date TEXT NOT NULL
         )
     `);
 });
@@ -43,11 +48,11 @@ app.listen(5001, () => {
 
 // ➕ Add Medicine
 app.post("/api/medicines", (req, res) => {
-    const {name, barcode, mrp, dr_price, price, quantity, expiry_date} = req.body;
+    const {name, category, company, supplier_id, barcode, mrp, dr_price, price, quantity, expiry_date} = req.body;
     db.run(
-        `INSERT INTO medicines(name, barcode, mrp, dr_price, price, quantity, expiry_date)
-        VALUES(?, ?, ?, ?, ?, ?, ?)`,
-        [name, barcode, mrp, dr_price, price, quantity, expiry_date],
+        `INSERT INTO medicines(name, barcode, category, company, supplier_id, mrp, dr_price, price, quantity, expiry_date)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [name, barcode, category, company, supplier_id, mrp, dr_price, price, quantity, expiry_date],
         function (err) {
             if(err) {
                 return res.status(500).json({error: err.message});
