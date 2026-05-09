@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS suppliers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
     phone TEXT,
-    address TEXT
+    address TEXT,
 );
 
 CREATE TABLE IF NOT EXISTS medicines (
