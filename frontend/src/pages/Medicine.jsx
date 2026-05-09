@@ -1,4 +1,5 @@
-import React from 'react'
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Search,
   Bell,
@@ -14,10 +15,11 @@ import {
   Filter,
   Download,
   Plus,
-} from "lucide-react";
-
+} from 'lucide-react';
 import SideBar from '../components/SideBar'
 import Topbar from '../components/TopBar';
+
+
 
 const Medicine = () => {
   return (
@@ -26,7 +28,7 @@ const Medicine = () => {
       <div className='flex-col w-full bg-[rgb(246,247,249)]'>
         <Topbar />
         <>
-        
+
         </>
       </div>
     </div>
