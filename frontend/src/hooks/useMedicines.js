@@ -53,11 +53,9 @@ export function useMedicines() {
             );
             if(diffDays < 0) {
                 expiryStatus = "Expired";
-            } else if(diffDays <= 30) {
-                expiryStatus = "Near Expiry";
             } else if(diffDays <= 60) {
-                expiryStatus = "2 month to Expire";
-            } else if(diffDays <= 90) {
+                expiryStatus = "Near Expiry";
+            } else if(diffDays>60 && diffDays <= 90){
                 expiryStatus = "3 month to Expire";
             }
 
