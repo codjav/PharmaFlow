@@ -213,7 +213,7 @@ const Medicine = () => {
           </div>
 
           {/* Content Grid */}
-          <div className="grid grid-cols-12 gap-4">
+          <div className="grid grid-cols-13 gap-4">
 
             {/* Table */}
             <div className="col-span-10 overflow-hidden rounded-3xl border bg-white shadow-sm w-235">
@@ -361,9 +361,54 @@ const Medicine = () => {
                 </table>
               </div>
             </div>
-            
+
+            {/* Alerts Panel */}
+            <div className="col-span-3 rounded-3xl border bg-white p-6 shadow-sm">
+              <h3 className="mb-5 text-lg font-bold text-gray-800">
+                Inventory Alerts
+              </h3>
+
+              {
+                alerts.length === 0? (
+                  <div className="rounded-2xl bg-green-50 p-4 text-sm text-green-700">
+                    All medicines are sufficiently stocked.
+                  </div>
+                ) : (
+                  alerts.map((a) => (
+                    <div
+                      key={a.id}
+                      className="mb-3 rounded-2xl border border-yellow-100 bg-yellow-50 p-4"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-yellow-900">
+                            {a.name}
+                          </p>
+                          <p className="text-xs text-yellow-700">
+                            Batch: {a.batch_number}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-yellow-200 px-2 py-1 text-xs font-bold text-yellow-800">
+                          {a.quantity} left
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                )
+              }
+            </div>
           </div>
         </div>
+
+        {/* Modal */}
+        <MedicineModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSubmit={handleSubmit}
+          formData={formData}
+          setFormData={setFormData}
+          isEditing={!!editingMedicine}
+        />
       </div>
     </div>
   );
