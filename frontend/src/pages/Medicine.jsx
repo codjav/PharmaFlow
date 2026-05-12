@@ -3,6 +3,8 @@ import { useMedicines } from "../hooks/useMedicines";
 import { medicineService } from "../services/medicineService";
 import MedicineModal from "../components/MedicineForm";
 import SideBar from "../components/SideBar";
+import StatCard from "../components/StatCard";
+import Topbar from "../components/TopBar";
 import {
   Search,
   Pill,
@@ -127,15 +129,11 @@ const Medicine = () => {
       {/* Medical */}
       <div className="min-h-screen w-full bg-gray-100">
         {/* Navbar */}
-        <div className="h-20 bg-white border-b px-4 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold to-gray-800">
-              Medicine Management
-            </h1>
-            <p className="text-gray-500 mt-1">
-              Manage medicine inventory and stock
-            </p>
-          </div>
+        <div className="h-20 bg-white px-4 flex items-center justify-between">
+          <Topbar
+            name="Medicine Management"
+            description="Manage medicine inventory and stock"
+          />
 
           {/* Search */}
           <div className="flex items-center gap-3 border rounded-2xl px-4 py-3 bg-gray-50 w-96">
@@ -196,7 +194,7 @@ const Medicine = () => {
             <StatCard
               title="Near Expiry"
               value={stats.nearExpiry}
-              sub="Within 30 days"
+              sub="Within 60 days"
               icon={CalendarClock}
               bg="bg-green-100"
               text="text-green-600"
@@ -213,54 +211,31 @@ const Medicine = () => {
           </div>
 
           {/* Content Grid */}
-          <div className="grid grid-cols-13 gap-4">
-
+          <div className="grid grid-cols-10 gap-4">
             {/* Table */}
-            <div className="col-span-10 overflow-hidden rounded-3xl border bg-white shadow-sm w-235">
+            <div className="col-span-10 overflow-hidden rounded-3xl bg-white shadow-sm">
               <div className="overflow-x-auto">
-
                 <table className="w-full">
-
                   <thead className="bg-gray-50 text-sm text-gray-600">
                     <tr>
-                      <th className="px-4 py-4 text-left">
-                        Medicine
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        Company
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        Category
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        MRP
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        DR Price
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        Price
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        Quantity
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        Expiry
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        Status
-                      </th>
-                      <th className="px-4 py-4 text-sm text-left">
-                        Actions
-                      </th>
+                      <th className="px-4 py-4 text-left">Medicine</th>
+                      <th className="px-4 py-4 text-sm text-left">Company</th>
+                      <th className="px-4 py-4 text-sm text-left">Category</th>
+                      <th className="px-4 py-4 text-sm text-left">MRP</th>
+                      <th className="px-4 py-4 text-sm text-left">DR Price</th>
+                      <th className="px-4 py-4 text-sm text-left">Price</th>
+                      <th className="px-4 py-4 text-sm text-left">Quantity</th>
+                      <th className="px-4 py-4 text-sm text-left">Expiry</th>
+                      <th className="px-4 py-4 text-sm text-left">Status</th>
+                      <th className="px-4 py-4 text-sm text-left">Actions</th>
                     </tr>
                   </thead>
-                  
+
                   <tbody>
                     {loading ? (
                       <tr>
-                        <td 
-                          colSpan="10" 
+                        <td
+                          colSpan="10"
                           className="py-10 text-center text-gray-500"
                         >
                           Loading Medicines...
@@ -268,7 +243,7 @@ const Medicine = () => {
                       </tr>
                     ) : filteredMedicines.length === 0 ? (
                       <tr>
-                        <td 
+                        <td
                           colSpan="10"
                           className="py-10 text-center text-gray-500"
                         >
@@ -277,44 +252,31 @@ const Medicine = () => {
                       </tr>
                     ) : (
                       filteredMedicines.map((m) => {
-                        <tr
-                          key={m.id}
-                          className="border-t hover:bg-gray-50"
-                        >
+                        <tr key={m.id} className="border-t hover:bg-gray-50">
                           <td className="px-4 py-4">
                             <p className="font-semibold text-gray-800">
                               {m.name}
                             </p>
                           </td>
+                          <td className="px-4 py-4">{m.company}</td>
+                          <td className="px-4 py-4">{m.category || "-"}</td>
+                          <td className="px-4 py-4">₹{m.mrp}</td>
+                          <td className="px-4 py-4">₹{m.dr_price}</td>
+                          <td className="px-4 py-4">₹{m.price}</td>
+                          <td className="px-4 py-4">{m.quantity}</td>
                           <td className="px-4 py-4">
-                            {m.company}
-                          </td>
-                          <td className="px-4 py-4">
-                            {m.category || "-"}
-                          </td>
-                          <td className="px-4 py-4">
-                            ₹{m.mrp}
-                          </td>
-                          <td className="px-4 py-4">
-                            ₹{m.dr_price}
-                          </td>
-                          <td className="px-4 py-4">
-                            ₹{m.price}
-                          </td>
-                          <td className="px-4 py-4">
-                            {m.quantity}
-                          </td>
-                          <td className="px-4 py-4">
-                            <span className={`text-xs font-semibold
+                            <span
+                              className={`text-xs font-semibold
                               ${
                                 m.expiryStatus === "Near Expiry"
                                   ? "bg-red-100 text-red-700"
                                   : m.expiryStatus === "3 month to Expire"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : m.expiryStatus === "Expired" 
-                                  ? "bg-blue-100 text-blue-700"
-                                  : ""
-                              }`}>
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : m.expiryStatus === "Expired"
+                                      ? "bg-blue-100 text-blue-700"
+                                      : ""
+                              }`}
+                            >
                               {m.expiry_date}
                             </span>
                           </td>
@@ -323,10 +285,10 @@ const Medicine = () => {
                               className={`rounded-full px-3 py-1 text-xs font-semibold
                                 ${
                                   m.stockStatus === "In stock"
-                                  ? "bg-green-100 text-green-700"
-                                  : m.stockStatus === "Low Stock"
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-red-100 text-red-700"
+                                    ? "bg-green-100 text-green-700"
+                                    : m.stockStatus === "Low Stock"
+                                      ? "bg-yellow-100 text-yellow-700"
+                                      : "bg-red-100 text-red-700"
                                 }
                               `}
                             >
@@ -338,64 +300,26 @@ const Medicine = () => {
                             <div className="flex items-center gap-3">
                               <button
                                 onClick={() => {
-                                  openEditModal(m)
+                                  openEditModal(m);
                                 }}
                                 className="text-blue-600 hover:text-blue-800"
                               >
                                 <Pencil size={18} />
                               </button>
-                              <button 
-                                onClick={() => 
-                                  handleDelete(m.id)
-                                }
+                              <button
+                                onClick={() => handleDelete(m.id)}
                                 className="text-red-600 hover:text-red-800"
                               >
                                 <Trash2 size={18} />
                               </button>
                             </div>
                           </td>
-                        </tr>
+                        </tr>;
                       })
                     )}
                   </tbody>
                 </table>
               </div>
-            </div>
-
-            {/* Alerts Panel */}
-            <div className="col-span-3 rounded-3xl border bg-white p-6 shadow-sm">
-              <h3 className="mb-5 text-lg font-bold text-gray-800">
-                Inventory Alerts
-              </h3>
-
-              {
-                alerts.length === 0? (
-                  <div className="rounded-2xl bg-green-50 p-4 text-sm text-green-700">
-                    All medicines are sufficiently stocked.
-                  </div>
-                ) : (
-                  alerts.map((a) => (
-                    <div
-                      key={a.id}
-                      className="mb-3 rounded-2xl border border-yellow-100 bg-yellow-50 p-4"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-semibold text-yellow-900">
-                            {a.name}
-                          </p>
-                          <p className="text-xs text-yellow-700">
-                            Batch: {a.batch_number}
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-yellow-200 px-2 py-1 text-xs font-bold text-yellow-800">
-                          {a.quantity} left
-                        </span>
-                      </div>
-                    </div>
-                  ))
-                )
-              }
             </div>
           </div>
         </div>
@@ -413,29 +337,5 @@ const Medicine = () => {
     </div>
   );
 };
-
-function StatCard ({
-  title, value, sub, icon: Icon, bg, text,
-}) {
-  <div className="flex items-center justify-between rounded-3xl border bg-white p-6 shadow-sm">
-    <div>
-      <p className="mb-2 text-sm text-gray-500">
-        {title}
-      </p>
-
-      <h2 className="text-3xl font-bold text-gray-800">
-        {value}
-      </h2>
-
-      <p className="mt-1 text-sm text-gray-400">
-        {sub}
-      </p>
-    </div>
-
-    <div className={`flex h-16 w-16 items-center justify-center rounded-2xl ${bg}`}>
-      <Icon className={text} size={28} />
-    </div>
-  </div>
-}
 
 export default Medicine;

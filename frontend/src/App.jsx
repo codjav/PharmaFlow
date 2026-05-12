@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Medicine from './pages/Medicine';
 import Supplier from './pages/Supplier';
 import Customer from './pages/Customer';
+import Alerts from './pages/Alerts';
 import Sale from './pages/Sale';
 import Bill from './pages/Bill';
 import Setting from './pages/Setting';
@@ -17,6 +18,7 @@ const App = () => {
       <Route path='/medicines' element={<Medicine />} />
       <Route path='/supplier' element={<Supplier />} />
       <Route path='/customer' element={<Customer />} />
+      <Route path='/alerts' element={<Alerts />} />
       <Route path='/sale' element={<Sale />} />
       <Route path='/bill' element={<Bill />} />
       <Route path='/setting' element={<Setting />} />

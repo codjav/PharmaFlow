@@ -7,7 +7,10 @@ const Supplier = () => {
     <div className='flex'>
       <SideBar />
       <div className='flex-col w-full bg-[rgb(246,247,249)]'>
-        <Topbar />
+        <Topbar
+          name="Supplier Management"
+          description="Manage your medicine supplier"
+        />
         supplier
       </div>
     </div>

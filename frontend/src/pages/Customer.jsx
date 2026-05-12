@@ -7,7 +7,10 @@ const Customer = () => {
     <div className='flex'>
       <SideBar />
       <div className='flex-col w-full bg-[rgb(246,247,249)]'>
-        <Topbar />
+        <Topbar
+          name="Customer Management"
+          description="Manage your customer"
+        />
         Customer
       </div>
     </div>

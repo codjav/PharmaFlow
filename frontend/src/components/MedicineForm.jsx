@@ -42,7 +42,7 @@ export default function MedicineForm({
         <div className="flex items-center justify-between border-b px-6 py-4">
           <div className="flex item-center gap-3">
             <div className="bg-indigo-100 p-2 rounded-xl">
-              <Pill className="p-2 rounded-xl" />
+              <Pill size={50} className="p-2 rounded-xl" />
             </div>
 
             <div>
@@ -131,158 +131,156 @@ export default function MedicineForm({
                 onChange={(e) => handleChange("company", e.target.value)}
               />
             </div>
+          </div>
 
-            {/* Row 3 */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Supplier */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
-                  Supplier
-                </label>
-                <select
-                  className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  value={formData.supplier_id || ""}
-                  onChange={(e) => handleChange("supplier_id", e.target.value)}
-                >
-                  <option value="">Select Supplier</option>
-                  {suppliers.map((supplier) => (
-                    <option key={supplier.id} value={supplier.id}>
-                      {supplier.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Barcode */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
-                  Barcode
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Scan or Enter Barcode"
-                  className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  value={formData.barcode || ""}
-                  onChange={(e) => handleChange("barcode", e.target.value)}
-                />
-              </div>
+          {/* Row 3 */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Supplier */}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                Supplier
+              </label>
+              <select
+                className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                value={formData.supplier_id || ""}
+                onChange={(e) => handleChange("supplier_id", e.target.value)}
+              >
+                <option value="">Select Supplier</option>
+                {suppliers.map((supplier) => (
+                  <option key={supplier.id} value={supplier.id}>
+                    {supplier.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
-            {/* Row 4 */}
-            <div className="grid grid-cols-3 gap-4">
-              {/* MRP */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
-                  MRP (₹)
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  value={formData.mrp || ""}
-                  onChange={(e) =>
-                    handleChange("mrp", parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
+            {/* Barcode */}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                Barcode
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="Scan or Enter Barcode"
+                className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                value={formData.barcode || ""}
+                onChange={(e) => handleChange("barcode", e.target.value)}
+              />
+            </div>
+          </div>
 
-              {/* Doctor price */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
-                  Doctor Price (₹)
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  value={formData.dr_price || ""}
-                  onChange={(e) =>
-                    handleChange("dr_price", parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
-
-              {/* Price */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
-                  Price (₹)
-                </label>
-
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  value={formData.price || ""}
-                  onChange={(e) =>
-                    handleChange("price", parseFloat(e.target.value) || 0)
-                  }
-                />
-              </div>
+          {/* Row 4 */}
+          <div className="grid grid-cols-3 gap-4">
+            {/* MRP */}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                MRP (₹)
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                value={formData.mrp || ""}
+                onChange={(e) =>
+                  handleChange("mrp", parseFloat(e.target.value) || 0)
+                }
+              />
             </div>
 
-            {/* Row 5 */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* Quantity */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
-                  Quantity
-                </label>
-                <input
-                  type="number"
-                  required
-                  min="0"
-                  placeholder="0"
-                  className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  value={formData.quantity || ""}
-                  onChange={(e) => 
-                    handleChange("quantity", parseInt(e.target.value) || 0)
-                  }
-                />
-              </div>
-
-              {/* Expiry date */}
-              <div>
-                <label className="mb-1 block text-sm font-semibold text-gray-700">
-                  Expiry Date
-                </label>
-                <input 
-                  type="date" 
-                  required
-                  className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
-                  value={formData.expiry_date || ""}
-                  onChange={(e) => 
-                    handleChange("expiry_date", e.target.value)
-                  }
-                />
-              </div>
+            {/* Doctor price */}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                DR Price (₹)
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                value={formData.dr_price || ""}
+                onChange={(e) =>
+                  handleChange("dr_price", parseFloat(e.target.value) || 0)
+                }
+              />
             </div>
 
-            {/* Footer Button */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="rounded-2xl border px-5 py-2.5 text-sm font-medium hover:bg-gray-100 transition cursor-pointer"
-                >
-                    Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-700 transition cursor-pointer"
-                >
-                    {isEditing ? "Update Medicine" : "Save Medicine"}
-                </button>
+            {/* Price */}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                Price (₹)
+              </label>
+
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                value={formData.price || ""}
+                onChange={(e) =>
+                  handleChange("price", parseFloat(e.target.value) || 0)
+                }
+              />
             </div>
+          </div>
+
+          {/* Row 5 */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Quantity */}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                Quantity
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                placeholder="0"
+                className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                value={formData.quantity || ""}
+                onChange={(e) =>
+                  handleChange("quantity", parseInt(e.target.value) || 0)
+                }
+              />
+            </div>
+
+            {/* Expiry date */}
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-gray-700">
+                Expiry Date
+              </label>
+              <input
+                type="date"
+                required
+                className="w-full rounded-2xl border bg-gray-50 px-4 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200"
+                value={formData.expiry_date || ""}
+                onChange={(e) => handleChange("expiry_date", e.target.value)}
+              />
+            </div>
+          </div>
+
+          {/* Footer Button */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-2xl border px-5 py-2.5 text-sm font-medium hover:bg-gray-100 transition cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="rounded-2xl bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white shadow hover:bg-indigo-700 transition cursor-pointer"
+            >
+              {isEditing ? "Update Medicine" : "Save Medicine"}
+            </button>
           </div>
         </form>
       </div>

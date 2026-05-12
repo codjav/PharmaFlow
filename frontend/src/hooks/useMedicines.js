@@ -5,9 +5,9 @@ export function useMedicines() {
     const [medicines, setMedicines] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-    
+
     // Fetch all medicines 
-    const fetchMedicines = async() => {
+    const fetchMedicines = async () => {
         let isMounted = true;
         try {
             setLoading(true);
@@ -18,7 +18,7 @@ export function useMedicines() {
             if (isMounted) {
                 setMedicines(data || []);
             }
-        } catch(error) {
+        } catch (error) {
             console.error("Error fetching medicines: ", error);
             setError("Failed to load medicines");
         } finally {
@@ -29,7 +29,7 @@ export function useMedicines() {
     // Load medicine on mount
     useEffect(() => {
         fetchMedicines();
-    },[])
+    }, [])
 
     // Process Medicine 
     const processedMedicines = useMemo(() => {
@@ -40,22 +40,22 @@ export function useMedicines() {
             let expiryStatus = "Safe";
 
             // Stock Status 
-            if(medicine.quantity === 0) {
+            if (medicine.quantity === 0) {
                 stockStatus = "Out of Stock";
-            } else if(medicine.quantity <= 5) {
+            } else if (medicine.quantity <= 5) {
                 stockStatus = "Low Stock";
             }
 
             // Expiry Status 
             const expiryDate = new Date(medicine.expiry_date);
             const diffDays = Math.ceil(
-                (expiryDate-today) / (1000*60*60*24)
+                (expiryDate - today) / (1000 * 60 * 60 * 24)
             );
-            if(diffDays < 0) {
+            if (diffDays < 0) {
                 expiryStatus = "Expired";
-            } else if(diffDays <= 60) {
+            } else if (diffDays <= 60) {
                 expiryStatus = "Near Expiry";
-            } else if(diffDays>60 && diffDays <= 90){
+            } else if (diffDays > 60 && diffDays <= 90) {
                 expiryStatus = "3 month to Expire";
             }
 
@@ -70,16 +70,20 @@ export function useMedicines() {
     // Dashboard Statistics
     const stats = useMemo(() => {
         const today = new Date();
-        
-        return{
+
+        return {
             totalMedicines: medicines.length,
 
             totalStock: medicines.reduce(
-                (sum, medicine) => sum+ (medicine.quantity || 0),
+                (sum, medicine) => sum + (medicine.quantity || 0),
                 0
             ),
 
             lowStock: medicines.filter(
+                (medicine) => medicine.quantity > 0 && medicine.quantity <= 5
+            ).length,
+
+            outOfStock: medicines.filter(
                 (medicine) => medicine.quantity === 0
             ).length,
 
@@ -88,10 +92,10 @@ export function useMedicines() {
                     const expiryDate = new Date(medicine.expiry_date);
 
                     const diffDays = Math.ceil(
-                        (expiryDate-today) / (1000*60*60*24)
+                        (expiryDate - today) / (1000 * 60 * 60 * 24)
                     );
 
-                    return diffDays >= 0 && diffDays<=60; 
+                    return diffDays >= 0 && diffDays <= 60;
                 }
             ).length,
 
@@ -99,15 +103,15 @@ export function useMedicines() {
                 const expiryDate = new Date(medicine.expiry_date);
 
                 const diffDays = Math.ceil(
-                    (expiryDate-today) / (1000*60*60*24)
+                    (expiryDate - today) / (1000 * 60 * 60 * 24)
                 );
 
                 return diffDays <= 0;
             }).length,
 
             totalInvertoryValue: medicines.reduce(
-                (sum, medicine) => 
-                    sum+ (parseFloat(medicine.mrp || 0)*parseInt(medicine.quantity || 0)), 0
+                (sum, medicine) =>
+                    sum + (parseFloat(medicine.mrp || 0) * parseInt(medicine.quantity || 0)), 0
             ),
         };
     }, [medicines]);

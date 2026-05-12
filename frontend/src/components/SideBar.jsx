@@ -5,6 +5,7 @@ import {
   PillIcon,
   Factory,
   User,
+  Bell,
   ReceiptText,
   ClipboardMinus,
 } from "lucide-react";
@@ -14,6 +15,7 @@ const menuItems = [
   { name: "Medicine", link: "/medicines", icon: PillIcon },
   { name: "Supplier", link: "/supplier", icon: Factory },
   { name: "Customer", link: "/customer", icon: User },
+  { name: "Alerts", link: "/alerts", icon: Bell },
   { name: "Sale", link: "/sale", icon: ClipboardMinus },
   { name: "Bill", link: "/bill", icon: ReceiptText },
   { name: "Setting", link: "/setting", icon: Settings },
