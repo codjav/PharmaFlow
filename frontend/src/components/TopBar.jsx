@@ -1,5 +1,3 @@
-import { Search, Bell } from "lucide-react";
-
 function Topbar({name, description}) {
   return (
     <div className="h-20 bg-white px-4 flex items-center justify-between">

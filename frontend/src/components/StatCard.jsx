@@ -1,5 +1,3 @@
-import React from "react";
-
 const StatCard = ({ title, value, sub, icon: Icon, bg, text }) => {
   return (
     <div className="flex items-center justify-between rounded-3xl bg-white p-6 shadow-sm">
