@@ -8,12 +8,14 @@ import {
   Bell,
   ReceiptText,
   ClipboardMinus,
+  ShoppingCart,
 } from "lucide-react";
 
 const menuItems = [
   { name: "Dashboard", link: "/", icon: LayoutDashboard },
   { name: "Medicine", link: "/medicines", icon: PillIcon },
   { name: "Supplier", link: "/supplier", icon: Factory },
+  { name: "Purchase", link: "/purchase", icon: ShoppingCart },
   { name: "Customer", link: "/customer", icon: User },
   { name: "Alerts", link: "/alerts", icon: Bell },
   { name: "Sale", link: "/sale", icon: ClipboardMinus },

@@ -109,7 +109,7 @@ export function useMedicines() {
                 return diffDays <= 0;
             }).length,
 
-            totalInvertoryValue: medicines.reduce(
+            totalInventoryValue: medicines.reduce(
                 (sum, medicine) =>
                     sum + (parseFloat(medicine.mrp || 0) * parseInt(medicine.quantity || 0)), 0
             ),

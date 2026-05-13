@@ -9,6 +9,7 @@ import Alerts from './pages/Alerts';
 import Sale from './pages/Sale';
 import Bill from './pages/Bill';
 import Setting from './pages/Setting';
+import Purchase from './pages/Purchase';
 
 const App = () => {
 
@@ -20,6 +21,7 @@ const App = () => {
       <Route path='/customer' element={<Customer />} />
       <Route path='/alerts' element={<Alerts />} />
       <Route path='/sale' element={<Sale />} />
+      <Route path='/purchase' element={<Purchase />} />
       <Route path='/bill' element={<Bill />} />
       <Route path='/setting' element={<Setting />} />
     </Routes>

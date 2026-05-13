@@ -129,7 +129,7 @@ const Medicine = () => {
       {/* Medical */}
       <div className="min-h-screen w-full bg-gray-100">
         {/* Navbar */}
-        <div className="h-20 bg-white px-4 flex items-center justify-between">
+        <div className="h-20 bg-white pr-4 flex items-center justify-between">
           <Topbar
             name="Medicine Management"
             description="Manage medicine inventory and stock"
