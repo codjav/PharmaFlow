@@ -1,8 +1,11 @@
 CREATE TABLE IF NOT EXISTS suppliers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
-    phone TEXT,
+    contact_person TEXT,
+    phone TEXT NOT NULL,
     address TEXT,
+    pending_due REAL DEFAULT 0.00,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS medicines (
