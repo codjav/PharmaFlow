@@ -104,7 +104,7 @@ CREATE TABLE IF NOT EXISTS sales (
     sale_date TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (customer_id)
         REFERENCES customers(id)
-)
+);
 
 
 CREATE TABLE IF NOT EXISTS sale_items (
@@ -118,5 +118,18 @@ CREATE TABLE IF NOT EXISTS sale_items (
     FOREIGN KEY(sale_id)
         REFERENCES sales(id),
     FOREIGN KEY(medicine_id)
-        REFERENCES medicines(id),
-)
+        REFERENCES medicines(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS stock_movements (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    medicine_id INTEGER,
+    movement_type TEXT,
+    quantity INTEGER,
+    reference_id INTEGER,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(medicine_id)
+        REFERENCES medicines(id)
+);
+
