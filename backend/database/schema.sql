@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS medicines (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     batch_number TEXT NOT NULL,
-    category TEXT,
+    category_id INTEGER,
     company TEXT NOT NULL,
     supplier_id INTEGER,
     barcode TEXT UNIQUE,
@@ -41,5 +41,8 @@ CREATE TABLE IF NOT EXISTS medicines (
     price REAL NOT NULL,
     quantity INTEGER NOT NULL CHECK(stock_quantity >= 0),
     expiry_date TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );
+
