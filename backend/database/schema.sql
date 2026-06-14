@@ -42,8 +42,10 @@ CREATE TABLE IF NOT EXISTS medicines (
     quantity INTEGER NOT NULL DEFAULT 0 CHECK(stock_quantity >= 0),
     expiry_date TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES categories(id),
-    FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
+    FOREIGN KEY (category_id) 
+        REFERENCES categories(id),
+    FOREIGN KEY (supplier_id) 
+        REFERENCES suppliers(id)
 );
 
 
@@ -56,4 +58,32 @@ CREATE TABLE IF NOT EXISTS customers (
     total_purchase REAL DEFAULT 0,
     pending_due REAL DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE IF NOT EXISTS purchases (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_number TEXT UNIQUE,
+    supplier_id INTEGER NOT NULL,
+    total_amount REAL,
+    paid_amount REAL DEFAULT 0,
+    due_amount REAL DEFAULT 0,
+    status TEXT,
+    purchase_date TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(supplier_id) 
+        REFERENCES suppliers(id)
+);
+
+
+CREATE TABLE purchase_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    purchase_id INTEGER,
+    medicine_id INTEGER,
+    quantity INTEGER,
+    purchase_price REAL,
+    subtotal REAL,
+    FOREIGN KEY(purchase_id)
+        REFERENCES purchases(id),
+    FOREIGN KEY(medicine_id)
+        REFERENCES medicines(id)
 );
