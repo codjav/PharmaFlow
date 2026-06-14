@@ -39,10 +39,21 @@ CREATE TABLE IF NOT EXISTS medicines (
     mrp REAL NOT NULL,
     dr_price REAL NOT NULL,
     price REAL NOT NULL,
-    quantity INTEGER NOT NULL CHECK(stock_quantity >= 0),
+    quantity INTEGER NOT NULL DEFAULT 0 CHECK(stock_quantity >= 0),
     expiry_date TEXT NOT NULL,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (supplier_id) REFERENCES suppliers(id)
 );
 
+
+CREATE TABLE IF NOT EXISTS customers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_code TEXT UNIQUE,
+    name TEXT NOT NULL,
+    phone TEXT,
+    address TEXT,
+    total_purchase REAL DEFAULT 0,
+    pending_due REAL DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
