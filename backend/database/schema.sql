@@ -8,9 +8,12 @@ CREATE TABLE IF NOT EXISTS users (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+
 CREATE TABLE IF NOT EXISTS suppliers (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    supplier_code TEXT UNIQUE,
     name TEXT NOT NULL UNIQUE,
+    company_name TEXT,
     contact_person TEXT,
     phone TEXT NOT NULL,
     address TEXT,
@@ -18,10 +21,12 @@ CREATE TABLE IF NOT EXISTS suppliers (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+
 CREATE TABLE IF NOT EXISTS categories (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT UNIQUE NOT NULL
 );
+
 
 CREATE TABLE IF NOT EXISTS medicines (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
