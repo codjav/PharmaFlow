@@ -87,3 +87,36 @@ CREATE TABLE purchase_items (
     FOREIGN KEY(medicine_id)
         REFERENCES medicines(id)
 );
+
+
+CREATE TABLE IF NOT EXISTS sales (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_number TEXT UNIQUE,
+    customer_id INTEGER,
+    payment_type TEXT,
+    subtotal REAL,
+    discount REAL DEFAULT 0,
+    gst REAL DEFAULT 0,
+    total_amount REAL,
+    paid_amount REAL,
+    due_amount REAL,
+    status TEXT,
+    sale_date TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (customer_id)
+        REFERENCES customers(id)
+)
+
+
+CREATE TABLE IF NOT EXISTS sale_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    sale_id INTEGER,
+    medicine_id INTEGER,
+    quantity INTEGER,
+    unit_price REAL,
+    discount REAL DEFAULT 0,
+    total REAL,
+    FOREIGN KEY(sale_id)
+        REFERENCES sales(id),
+    FOREIGN KEY(medicine_id)
+        REFERENCES medicines(id),
+)
