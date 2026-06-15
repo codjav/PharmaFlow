@@ -133,3 +133,14 @@ CREATE TABLE IF NOT EXISTS stock_movements (
         REFERENCES medicines(id)
 );
 
+
+CREATE TABLE IF NOT EXISTS settings (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pharmacy_name TEXT,
+    owner_name TEXT,
+    phone TEXT,
+    email TEXT,
+    address TEXT,
+    theme TEXT DEFAULT 'LIGHT'
+);
+
