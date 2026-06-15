@@ -1,21 +1,12 @@
-import express from "express";
-import cors from "cors";
-import medicineRoutes from './routes/medicine.routes.js';
-import 'dotenv/config'
+import app from "./app.js";
+import { ENV } from "./config/env.js";
 
-const app = express();
+app.listen(ENV.PORT, () => {
+    console.log(`
+        ==================================
 
-app.use(cors());
-app.use(express.json());
+        Server running on port ${ENV.PORT}
 
-app.use('/api/medicines', medicineRoutes)
-
-app.get("/", (req, res) => {
-    res.send("Backend is working ✅");
-});
-
-const PORT = process.env.PORT || 5001; 
-
-app.listen(PORT, () => {
-    console.log(`Server is Listening on port ${PORT}`);
+        ==================================
+    `);
 });
