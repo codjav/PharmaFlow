@@ -1,7 +1,7 @@
 import express from "express";
 import sqlite3 from "sqlite3";
 import cors from "cors";
-import medicineRoutes from './routes/medicineRoutes.js';
+import medicineRoutes from './routes/medicine.routes.js';
 import 'dotenv/config'
 
 const app = express();
