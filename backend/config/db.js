@@ -1,6 +1,4 @@
 import Database from "better-sqlite3";
-import path from 'path';
-import fs from 'fs';
 import {ENV} from './env.js';
 
 let db;
@@ -14,6 +12,7 @@ try {
     process.exit(1);
 }
 
+// If no need can remove this fuction -
 function closeDatabase() {
     if(db) {
         db.close();
