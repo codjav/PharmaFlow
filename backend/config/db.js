@@ -1,33 +1,28 @@
-import sqlite3 from 'sqlite3';
-import {open} from 'sqlite';
+import Database from "better-sqlite3";
 import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs/promises';
-
-const _filename = fileURLToPath(import.meta.url);
-const _dirname = path.dirname(_filename);
-
-const dbPath = path.join(_dirname, '../database/pharmacy.db');
-
-const sqlite3Verbose = sqlite3.verbose();
+import fs from 'fs';
+import {ENV} from './env.js';
 
 let db;
 
-try{
-    db = await open({
-        filename: dbPath,
-        driver: sqlite3Verbose.Database
-    });
-
-    const schemaPath = path.join(_dirname, '../database/schema.sql');
-    const schema = await fs.readFile(schemaPath, 'utf8');
-
-    await db.exec(schema);
-
-    console.log('SQLite Connected asynchronously to pharmacy.db');
+try {
+    db = new Database(ENV.DB_PATH);
+    db.pragma("journal_mode = WAL");
+    console.log("Database Connected");
 } catch (error) {
-    console.error('Failed to initialize SQLite database:', error);
+    console.error("Failed to connect or initialize the database:", error);
     process.exit(1);
 }
+
+function closeDatabase() {
+    if(db) {
+        db.close();
+        console.log("Database connection closed cleanly")
+    }
+    process.exit(0);
+}
+
+process.on("SIGINT", closeDatabase);
+process.on("SIGTERM", closeDatabase);
 
 export default db;
