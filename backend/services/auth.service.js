@@ -47,7 +47,47 @@ export const login = async ({ username, password }) => {
             id: user.id,
             username: user.username,
             fullname: user.full_name,
+            email: user.email,
             role: user.role
         }
     };
+};
+
+
+export const createAdmin = () => {
+    const existingAdmin = db.prepare(`
+        SELECT *
+        FROM users
+        WHERE username = ?    
+    `).get("admin");
+
+    if(existingAdmin) {
+        return;
+    }
+
+    const hashedPassword = bcrypt.hashSync(
+        "admin123",
+        10
+    );
+
+    db.prepare(`
+        INSERT INTO users(
+            username,
+            password,
+            full_name,
+            role
+        )
+        VALUES(
+            ?,?,?,?
+        )
+    `).run(
+        "admin",
+        hashedPassword,
+        "Administrator",
+        "ADMIN"
+    );
+
+    console.log(
+        "Default admin created"
+    );
 };
