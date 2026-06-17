@@ -106,3 +106,59 @@ export const createMedicine = (medicineData) => {
         result.lastInsertRowid
     );
 };
+
+// Update medicine
+export const updateMedicine = (id, medicineData) => {
+    getMedicineById(id);
+
+    const {
+        name,
+        batch_number,
+        category_id,
+        company,
+        supplier_id,
+        barcode,
+        mrp,
+        dr_price,
+        price,
+        quantity,
+        minimum_stock,
+        expiry_date
+    } = medicineData;
+
+    db.prepare(`
+        UPDATE medicines
+        SET 
+            name = ?,
+            batch_number = ?,
+            category_id = ?,
+            company = ?,
+            supplier_id = ?,
+            barcode = ?,
+            mrp = ?,
+            dr_price = ?,
+            price = ?,
+            quantity = ?,
+            minimum_stock = ?,
+            expiry_date = ?
+        WHERE id=?
+    `).run(
+        name,
+        batch_number,
+        category_id,
+        company,
+        supplier_id,
+        barcode,
+        mrp,
+        dr_price,
+        price,
+        quantity,
+        minimum_stock,
+        expiry_date,
+        id
+    );
+
+    return getMedicineById(id);
+};
+
+// 
