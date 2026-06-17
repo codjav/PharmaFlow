@@ -233,3 +233,32 @@ export const get90ExpiryMedicines = () => {
         <=90
     `).all();
 }
+
+// Stock Adjustment 
+export const adjustStock = (id, quantity) => {
+    getMedicineById(id);
+    db.prepare(`
+        UPDATE medicines
+        SET quantity = quantity + ?
+        WHERE id = ?
+    `).run(quantity, id);
+
+    return getMedicineById(id);
+}
+
+// Pagination
+export const getMedicines = (
+    page = 1,
+    limit = 10
+) => {
+    const offset = (page-1)*limit;
+    return db.prepare(`
+        SELECT *
+        FROM medicines 
+        LIMIT ?
+        OFFSET ?
+    `).all(
+        limit,
+        offset
+    );
+};
