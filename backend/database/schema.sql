@@ -16,8 +16,11 @@ CREATE TABLE IF NOT EXISTS suppliers (
     company_name TEXT,
     contact_person TEXT,
     phone TEXT NOT NULL,
+    email TEXT,
+    city TEXT,
     address TEXT,
-    pending_due REAL DEFAULT 0.00,
+    status TEXT DEFAULT 'ACTIVE',
+    pending_due REAL DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
