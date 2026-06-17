@@ -169,3 +169,34 @@ export const deleteMedicine = (id) => {
         WHERE id = ?
     `).run(id);
 };
+
+// Search medicine
+export const searchMedicines = (keyword = "") => {
+    // if(!keyword.trim()) {
+    //     return db.prepare(`
+    //         SELECT * 
+    //         FROM medicines
+    //     `).all();
+    // }
+
+    const searchPatter = `%${keyword}%`;
+
+    return db.prepare(`
+        SELECT 
+            m.*,
+            c.name AS category_name 
+        FROM medicines m
+        LEFT JOIN categories c
+            ON m.category_id = c.id
+        WHERE 
+            m.name LIKE ?
+            OR m.company LIKE ?
+            OR barcode LIKE ?
+            OR c.name LIKE ?
+    `).all(
+        searchPatter,
+        searchPatter,
+        searchPatter,
+        searchPatter
+    )
+}

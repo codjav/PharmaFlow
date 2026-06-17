@@ -58,3 +58,14 @@ export const deleteMedicine = asyncHandler(
         });
     }
 );
+
+// Search 
+export const searchMedicines = asyncHandler(
+    async (req, res) => {
+        const medicines = medicineService.searchMedicines(req.query.keyword);
+        res.status(200).json({
+            success: true,
+            data: medicines
+        })
+    }
+)
