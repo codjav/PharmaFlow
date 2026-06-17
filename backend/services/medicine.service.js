@@ -209,3 +209,27 @@ export const getLowStockMedicines = () => {
         WHERE quantity <= minimum_stock
     `).all();
 };
+
+// Near expiry medicines
+export const getNearExpiryMedicines = () => {
+    return db.prepare(`
+        SELECT *
+        FROM medicines 
+        WHERE 
+        julianday(expiry_date)
+        - julian('now')
+        <=60
+    `).all();
+}
+
+// 90 days to expire medicines
+export const get90ExpiryMedicines = () => {
+    return db.prepare(`
+        SELECT *
+        FROM medicines 
+        WHERE 
+        julianday(expiry_date)
+        - julian('now')
+        <=90
+    `).all();
+}
