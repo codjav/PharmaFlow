@@ -47,3 +47,14 @@ export const updateMedicine = asyncHandler(
         });
     }
 );
+
+// Delete
+export const deleteMedicine = asyncHandler(
+    async (req, res) => {
+        medicineService.deleteMedicine(req.params.id);
+        res.status(200).json({
+            success: true,
+            message: "Medicine deleted successfully"
+        });
+    }
+);

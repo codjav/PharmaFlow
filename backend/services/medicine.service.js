@@ -161,4 +161,11 @@ export const updateMedicine = (id, medicineData) => {
     return getMedicineById(id);
 };
 
-// 
+// Delete medicine
+export const deleteMedicine = (id) => {
+    getMedicineById(id);
+    db.prepare(`
+        DELETE FROM medicines
+        WHERE id = ?
+    `).run(id);
+};
