@@ -40,7 +40,9 @@ CREATE TABLE IF NOT EXISTS medicines (
     dr_price REAL NOT NULL,
     price REAL NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 0 CHECK(stock_quantity >= 0),
+    minimum_stock INTEGER DEFAULT 5,
     expiry_date TEXT NOT NULL,
+    image TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) 
         REFERENCES categories(id),
