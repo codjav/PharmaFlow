@@ -179,7 +179,7 @@ export const searchMedicines = (keyword = "") => {
     //     `).all();
     // }
 
-    const searchPatter = `%${keyword}%`;
+    const searchPattern = `%${keyword}%`;
 
     return db.prepare(`
         SELECT 
@@ -194,10 +194,10 @@ export const searchMedicines = (keyword = "") => {
             OR barcode LIKE ?
             OR c.name LIKE ?
     `).all(
-        searchPatter,
-        searchPatter,
-        searchPatter,
-        searchPatter
+        searchPattern,
+        searchPattern,
+        searchPattern,
+        searchPattern
     )
 }
 
