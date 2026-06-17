@@ -24,7 +24,85 @@ export const getAllMedicines = () => {
 
 // GET medicine by id
 export const getMedicineById = (id) => {
-    return db.exec(`
+    const medicine = db.prepare(`
+        SELECT * 
+        FROM medicines
+        WHERE id = ?
+    `).get(id);
 
-    `)
-}
+    if(!medicine) {
+        throw new AppError("Medicine not found", 404);
+    }
+
+    return medicine;
+};
+
+// CREATE new medicine
+export const createMedicine = (medicineData) => {
+
+    validateMedicine(
+        medicineData
+    );
+
+    const {
+        name,
+        batch_number,
+        category_id,
+        company,
+        supplier_id,
+        barcode,
+        mrp,
+        dr_price,
+        price,
+        quantity,
+        minimum_stock,
+        expiry_date
+    } = medicineData;
+
+    const existingBarcode = db.prepare(`
+        SELECT id
+        FROM medicines
+        WHERE barcode = ?
+    `).get(barcode);
+
+    if(existingBarcode) {
+        throw new AppError("Barcode already exists", 400);
+    }
+
+    const result = db.prepare(`
+        INSERT INTO medicines(
+            name,
+            batch_number,
+            category_id,
+            company,
+            supplier_id,
+            barcode,
+            mrp,
+            dr_price,
+            price,
+            quantity,
+            minimum_stock,
+            expiry_date
+        )
+        VALUES (
+            ?,?,?,?,?,?,?,?,?,?,?,?
+        )
+    `).run(
+        name,
+        batch_number,
+        category_id,
+        company,
+        supplier_id,
+        barcode,
+        mrp,
+        dr_price,
+        price,
+        quantity,
+        minimum_stock,
+        expiry_date
+    );
+
+    return getMedicineById(
+        result.lastInsertRowid
+    );
+};
