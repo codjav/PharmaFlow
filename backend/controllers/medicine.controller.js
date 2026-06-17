@@ -69,3 +69,15 @@ export const searchMedicines = asyncHandler(
         })
     }
 )
+
+// Low stock
+export const getLowStockMedicines = asyncHandler(
+    async (req, res) => {
+        const medicines = medicineService.getLowStockMedicines();
+        res.status(200).json({
+            success: true,
+            count: medicines.length,
+            data: medicines
+        });
+    }
+);

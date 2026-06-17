@@ -200,3 +200,12 @@ export const searchMedicines = (keyword = "") => {
         searchPatter
     )
 }
+
+// Low stock medicines
+export const getLowStockMedicines = () => {
+    return db.prepare(`
+        SELECT *
+        FROM medicines 
+        WHERE quantity <= minimum_stock
+    `).all();
+};
