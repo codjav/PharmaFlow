@@ -24,20 +24,14 @@ const router = express.Router();
 
 // Search and stats routes first
 router.get("/search", searchSuppliers);
-
 router.get("/stats", getSupplierStats);
-
 router.get("/top", getTopSuppliers);
-
 router.get("/with-due", getSuppliersWithDue);
-
+router.get("/:id/summary", getSupplierSummary);
 
 // CRUD routes
 router.get("/", getPaginatedSuppliers);
-router.get("/:id/summary", getSupplierSummary);
-
-router.route("/")
-    .post(createSupplier);
+router.post("/", createSupplier);
 
 router.route("/:id")
     .get(getSupplierById)

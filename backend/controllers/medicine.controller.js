@@ -66,6 +66,7 @@ export const searchMedicines = asyncHandler(
         const medicines = medicineService.searchMedicines(req.query.keyword);
         res.status(200).json({
             success: true,
+            count: medicines.length,
             data: medicines
         })
     }
