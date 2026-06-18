@@ -102,17 +102,18 @@ export const getPaginatedSuppliers = asyncHandler(
     async (req, res) => {
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
-        const result =
-            supplierService.getPaginatedSuppliers(
-                page,
-                limit
-            );
+        const all = req.query.all === 'true'; // Checks if ?all=true is in the URL
+
+        const result = supplierService.getPaginatedSuppliers(page, limit, all);
+        
         res.status(200).json({
             success: true,
-            ...result
+            data: result.suppliers,
+            pagination: result.pagination
         });
     }
-)
+);
+
 
 // GET supplier summary
 export const getSupplierSummary = asyncHandler(

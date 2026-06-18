@@ -183,37 +183,51 @@ export const getSupplierStats = () => {
 // Pagination
 export const getPaginatedSuppliers = (
     page = 1,
-    limit = 10
+    limit = 10,
+    all = false // 🔍 Add this new flag parameter
 ) => {
-    const offset = (page-1)*limit;
+    // If all is true, return everything immediately for dropdowns
+    if (all) {
+        const suppliers = db.prepare(`
+            SELECT id, name, company_name -- Fetching only what dropdowns need is faster
+            FROM suppliers
+            ORDER BY name ASC
+        `).all();
+
+        return { suppliers, pagination: null };
+    }
+
+    // Otherwise, execute your perfect pagination logic below
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    const offset = (pageNum - 1) * limitNum;
+
     const suppliers = db.prepare(`
         SELECT *
         FROM suppliers 
-        ORDER BY created_at DESC
+        ORDER BY id DESC
         LIMIT ?
         OFFSET ?
-    `).all(
-        limit,
-        offset
-    );
+    `).all(limitNum, offset);
 
-    const totalRecords = db.prepare(`
-        SELECT COUNT(*) total
+    const countResult = db.prepare(`
+        SELECT COUNT(*) AS total
         FROM suppliers
     `).get();
+
+    const total = countResult ? countResult.total : 0;
 
     return {
         suppliers,
         pagination: {
-            page, 
-            limit, 
-            totalRecords: totalRecords.total,
-            totalPages: Math.ceil(
-                totalRecords.total/limit
-            )
+            page: pageNum, 
+            limit: limitNum, 
+            totalRecords: total,
+            totalPages: Math.max(1, Math.ceil(total / limitNum))
         }
     };
 };
+
 
 // Get supplier summary
 export const getSupplierSummary = (id) => {

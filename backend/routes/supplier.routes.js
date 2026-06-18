@@ -2,7 +2,6 @@ import express from "express";
 
 import {
 
-    getAllSuppliers,
     getSupplierById,
     createSupplier,
     updateSupplier,

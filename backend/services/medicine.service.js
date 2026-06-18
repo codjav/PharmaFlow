@@ -4,7 +4,7 @@ import { validateMedicine } from "../validators/medicine.validator.js";
 
 // GET all medicine
 export const getAllMedicines = () => {
-    return db.exec(`
+    return db.prepare(`
         SELECT
             m.*,
             c.name AS category_name,
@@ -217,7 +217,7 @@ export const getNearExpiryMedicines = () => {
         FROM medicines 
         WHERE 
         julianday(expiry_date)
-        - julian('now')
+        - julianday('now')
         <=60
     `).all();
 }
@@ -229,14 +229,17 @@ export const get90ExpiryMedicines = () => {
         FROM medicines 
         WHERE 
         julianday(expiry_date)
-        - julian('now')
+        - julianday('now')
         <=90
     `).all();
 }
 
 // Stock Adjustment 
 export const adjustStock = (id, quantity) => {
-    getMedicineById(id);
+    const medicine = getMedicineById(id);
+    if (!medicine) {
+        throw new Error(`Medicine with ID ${id} not found.`);
+    }
     db.prepare(`
         UPDATE medicines
         SET quantity = quantity + ?
@@ -247,18 +250,43 @@ export const adjustStock = (id, quantity) => {
 }
 
 // Pagination
-export const getMedicines = (
+export const getPaginatedMedicines = (
     page = 1,
     limit = 10
 ) => {
-    const offset = (page-1)*limit;
-    return db.prepare(`
-        SELECT *
-        FROM medicines 
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+    const offset = (pageNum - 1) * limitNum;
+
+    const medicines = db.prepare(`
+        SELECT 
+            m.*,
+            c.name AS category_name,
+            s.supplier_name AS supplier_name
+        FROM medicines m
+        LEFT JOIN categories c 
+            ON m.category_id = c.id
+        LEFT JOIN suppliers s 
+            ON m.supplier_id = s.id
+        ORDER BY m.id DESC
         LIMIT ?
         OFFSET ?
-    `).all(
-        limit,
-        offset
-    );
+    `).all(limitNum, offset);
+
+    const countResult = db.prepare(`
+        SELECT COUNT(*) AS total
+        FROM medicines
+    `).get();
+
+    const total = countResult ? countResult.total : 0;
+
+    return {
+        medicines,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            totalRecords: total,
+            totalPages: Math.max(1, Math.ceil(total / limitNum))
+        }
+    };
 };

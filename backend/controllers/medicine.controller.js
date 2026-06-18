@@ -1,5 +1,6 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import * as medicineService from "../services/medicine.service.js"
+import AppError from "../utils/AppError.js";
 
 // Get all 
 export const getAllMedicines = asyncHandler(
@@ -81,3 +82,62 @@ export const getLowStockMedicines = asyncHandler(
         });
     }
 );
+
+// Stock Adjustment
+export const adjustStock = asyncHandler(async (req, res, next) => {
+    const { id } = req.params;
+    const quantity = Number(req.body.quantity);
+
+    if (isNaN(quantity) || quantity === 0) {
+        return next(new AppError('Please provide a valid non-zero adjustment quantity', 400));
+    }
+
+    try {
+        const updatedMedicine = medicineService.adjustStock(Number(id), quantity);
+        
+        res.status(200).json({
+            success: true,
+            message: 'Stock level adjustment calculation performed successfully',
+            data: updatedMedicine
+        });
+    } catch (error) {
+        // Intercept target missing exceptions thrown by model constraint checker
+        return next(new AppError(error.message, 404));
+    }
+});
+
+// Get paginated medicines
+export const getPaginatedMedicines = asyncHandler(async (req, res, next) => {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 10;
+
+    const result = medicineService.getPaginatedMedicines(page, limit);
+
+    res.status(200).json({
+        success: true,
+        data: result.medicines,
+        pagination: result.pagination
+    });
+});
+
+// Near expiry
+export const getNearExpiryMedicines = asyncHandler(async (req, res, next) => {
+    const medicines = medicineService.getNearExpiryMedicines();
+
+    res.status(200).json({
+        success: true,
+        count: medicines.length,
+        data: medicines
+    });
+});
+
+// 90 expiry
+export const get90ExpiryMedicines = asyncHandler(async (req, res, next) => {
+    const medicines = medicineService.get90ExpiryMedicines();
+
+    res.status(200).json({
+        success: true,
+        count: medicines.length,
+        data: medicines
+    });
+});

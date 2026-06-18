@@ -1,9 +1,9 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import db from "../config/db";
-import AppError from "../utils/AppError";
-import { ENV } from "../config/env";
+import db from "../config/db.js";
+import AppError from "../utils/AppError.js";
+import { ENV } from "../config/env.js";
 
 export const login = async ({ username, password }) => {
     if(!username || !password) {
