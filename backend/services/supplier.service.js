@@ -180,4 +180,107 @@ export const getSupplierStats = () => {
     }
 }
 
-// Get supplier for top
+// Pagination
+export const getPaginatedSuppliers = (
+    page = 1,
+    limit = 10
+) => {
+    const offset = (page-1)*limit;
+    const suppliers = db.prepare(`
+        SELECT *
+        FROM suppliers 
+        ORDER BY created_at DESC
+        LIMIT ?
+        OFFSET ?
+    `).all(
+        limit,
+        offset
+    );
+
+    const totalRecords = db.prepare(`
+        SELECT COUNT(*) total
+        FROM suppliers
+    `).get();
+
+    return {
+        suppliers,
+        pagination: {
+            page, 
+            limit, 
+            totalRecords: totalRecords.total,
+            totalPages: Math.ceil(
+                totalRecords.total/limit
+            )
+        }
+    };
+};
+
+// Get supplier summary
+export const getSupplierSummary = (id) => {
+    const supplier = db.prepare(`
+        SELECT *
+        FROM suppliers
+        WHERE id=?
+    `).get(id);
+
+    if (!supplier) {
+        throw new AppError(
+            "Supplier not found",
+            404
+        );
+    }
+
+    const purchaseSummary = db.prepare(`
+        SELECT
+            COUNT(*) total_purchases,
+            SUM(total_amount) total_amount,
+            SUM(paid_amount) paid_amount,
+            SUM(due_amount) due_amount
+        FROM purchases
+        WHERE supplier_id=?
+    `).get(id);
+
+    return {
+        supplier,
+        totalPurchases:
+            purchaseSummary.total_purchases || 0,
+        totalPurchaseAmount:
+            purchaseSummary.total_amount || 0,
+        paidAmount:
+            purchaseSummary.paid_amount || 0,
+        dueAmount:
+            purchaseSummary.due_amount || 0
+    };
+};
+
+// Get supplier with pending due
+export const getSuppliersWithDue = () => {
+    return db.prepare(`
+        SELECT
+            id,
+            name,
+            phone,
+            pending_due
+        FROM suppliers
+        WHERE pending_due > 0
+        ORDER BY pending_due DESC
+    `).all();
+};
+
+// Get top suppliers
+export const getTopSuppliers = () => {
+    return db.prepare(`
+        SELECT
+            s.id,
+            s.name,
+            s.phone,
+            COUNT(p.id) total_orders,
+            SUM(p.total_amount) total_purchase
+        FROM suppliers s
+        LEFT JOIN purchases p
+        ON s.id = p.supplier_id
+        GROUP BY s.id
+        ORDER BY total_purchase DESC
+        LIMIT 5
+    `).all();
+};
