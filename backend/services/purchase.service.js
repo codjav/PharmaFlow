@@ -282,3 +282,181 @@ export const getSupplierPurchases = (
         ORDER BY purchase_date DESC
     `).all(supplierId);
 };
+
+// GET /api/purchases?page=1&limit=10
+// Pagination
+export const getPaginatedPurchases = (
+    page = 1,
+    limit = 10
+) => {
+    const offset = (page-1)*limit;
+
+    const purchases = db.prepare(`
+        SELECT 
+            p.*,
+            s.name supplier_name
+        FROM purchases p
+        JOIN suppliers s
+        ON p.supplier_id = s.id
+        ORDER BY purchase_date DESC
+        LIMIT ?
+        OFFSET ?
+    `).all(
+        limit,
+        offset
+    );
+
+    const totalRecords = db.prepare(`
+        SELECT COUNT(*) total
+        FROM purchases
+    `).get();
+
+    return {
+        purchases,
+        pagination: {
+            page,
+            limit,
+            totalRecords: totalRecords.total,
+            totalPages: Math.ceil(
+                totalRecords.total/limit
+            )
+        }
+    };
+};
+
+// PATCH   /api/purchases/:id/payment
+// Update Payment
+export const updatePurchasePayment = (purchaseId, amount) => {
+    const purchase = db.prepare(`
+        SELECT *
+        FROM purchases 
+        WHERE id=?
+    `).get(purchaseId);
+
+    if(!purchase) {
+        throw new AppError(
+            "Purchase not found",
+            404
+        );
+    };
+
+    const newPaidAmount = purchase.paid_amount + amount;
+    const newDueAmount = purchase.total_amount - newPaidAmount;
+
+    db.prepare(`
+        UPDATE purchases
+        SET 
+            paid_amount = ?,
+            due_amount = ?,
+            status = ?
+        WHERE id = ?
+    `).run(
+        newPaidAmount,
+        newDueAmount,
+        newDueAmount>0 
+            ? "PENDING"
+            : "PAID",
+        purchaseId
+    );
+
+    db.prepare(`
+        UPDATE suppliers
+        SET
+            pending_due = pending_due - ?
+        WHERE id = ?
+    `).run(
+        amount,
+        purchase.supplier_id
+    );
+};
+
+// PATCH   /api/purchases/:id/mark-paid
+// Mark purchase paid
+export const markPurchasePaid = (purchaseId) => {
+    const purchase = db.prepare(`
+        SELECT * 
+        FROM purchases 
+        WHERE id = ?
+    `).get(purchaseId);
+
+    if(!purchase) {
+        throw new AppError(
+            "Purchase not found",
+            404
+        );
+    }
+
+    db.prepare(`
+        UPDATE purchases
+        SET
+            paid_amount = total_amount,
+            due_amount = 0,
+            status = 'PAID'
+        WHERE id = ?
+    `).run(purchaseId);
+
+    db.prepare(`
+        UPDATE suppliers
+        SET 
+            pending_due = pending_due - ?
+        WHERE id = ?
+    `).run(
+        purchase.due_amount,
+        purchase.supplier_id
+    );
+};
+
+
+// GET     /api/purchases/report
+// Get purchase report over the time
+export const getPurchaseReport = () => {
+    const todayPurchase = db.prepare(`
+        SELECT 
+            COALESCE(SUM(total_amount), 0) AS total
+        FROM purchases
+        WHERE DATE(purchase_date) = DATE('now')
+    `).get();
+
+    const thisMonthPurchase = db.prepare(`
+        SELECT 
+            COALESCE(SUM(total_amount), 0) AS total
+        FROM purchases
+        WHERE strftime('%Y-%m', purchase_date)
+            = strftime('%Y-%m', 'now')
+    `).get();
+
+    const thisYearPurchase = db.prepare(`
+        SELECT 
+            COALESCE(SUM(total_amount), 0) AS total
+        FROM purchases
+        WHERE strftime('%Y', purchase_date)
+            = strftime('%Y', 'now')
+    `).get();
+
+    const totalPaidAmount = db.prepare(`
+        SELECT 
+            COALESCE(SUM(paid_amount), 0) AS total
+        FROM purchases
+    `).get();
+
+    const totalDueAmount = db.prepare(`
+        SELECT 
+            COALESCE(SUM(due_amount), 0) AS total
+        FROM purchases
+    `).get();
+
+    const totalPurchases = db.prepare(`
+        SELECT 
+            COALESCE(SUM(total_amount), 0) AS total
+        FROM purchases
+    `).get();
+
+    return {
+        todayPurchase: todayPurchase.total,
+        thisMonthPurchase: thisMonthPurchase.total,
+        thisYearPurchase: thisYearPurchase.total,
+        totalPaidAmount: totalPaidAmount.total,
+        totalDueAmount: totalDueAmount.total,
+        totalPurchases: todayPurchases.total
+    };
+};

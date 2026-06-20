@@ -7,19 +7,26 @@ import {
     searchPurchases,
     getPurchaseStats,
     getRecentPurchases,
-    getSupplierPurchases
+    getSupplierPurchases,
+    getPaginatedPurchases,
+    updatePurchasePayment,
+    markPurchasePaid,
+    getPurchaseReport
 } from '../controllers/purchaseController.js';
 
 const router = express.Router();
 
 router.get('/stats', getPurchaseStats);
+router.get('/report', getPurchaseReport);
 router.get('/recent', getRecentPurchases);
 router.get('/search', searchPurchases);
+router.patch("/:id/payment", updatePurchasePayment);
+router.patch("/:id/mark-paid", markPurchasePaid);
 
 router.get('/supplier/:supplierId', getSupplierPurchases);
 
 router.route('/')
-    .get(getAllPurchases)
+    .get(getPaginatedPurchases)
     .post(createPurchase);
 
 router.route('/:id')

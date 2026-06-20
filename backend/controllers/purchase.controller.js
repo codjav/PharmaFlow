@@ -96,3 +96,63 @@ export const getSupplierPurchases = asyncHandler(
         });
     }
 );
+
+// Pagination
+export const getPaginatedPurchases = asyncHandler(
+    async (req, res) => {
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const result = purchaseService.getPaginatedPurchases(page, limit);
+
+        res.status(200).json({
+            success: true,
+            data: result.purchases,
+            pagination: result.pagination
+        });
+    }
+);
+
+// Update Payment
+export const updatePurchasePayment = asyncHandler(
+    async (req, res) => {
+        const {id} = req.params;
+        const amount = Number(req.body.amount);
+
+        if(isNaN(amount) || amount<=0) {
+            return next(new AppError("Please, specify a valid positive amount",400));
+        }
+
+        purchaseService.updatePurchasePayment(Number(id), amount);
+
+        res.status(200).json({
+            success: true,
+            message: 'Payment adjustment done'
+        });
+    }
+);
+
+// Mark Paid
+export const markPurchasePaid = asyncHandler(
+    async (req, res) => {
+        const {id} = req.params;
+        purchaseService.markPurchasePaid(Number(id));
+
+        res.status(200).json({
+            success: true,
+            message: "Purchase invoice fully settled."
+        });
+    }
+);
+
+// Get report 
+export const getPurchaseReport = asyncHandler(
+    async (req, res) => {
+        const reportData = purchaseService.getPurchaseReport();
+
+        res.status(200).json({
+            success: true,
+            data: reportData
+        });
+    }
+);
