@@ -18,8 +18,22 @@ export const getAllCustomers = asyncHandler(
 // Get by id
 export const getCustomerById = asyncHandler(
     async (req, res) => {
+        const {id} = req.params;
+        const result = customerService.getCustomerById(Number(id));
         res.status(200).json({
             success: true,
+            data: result
+        });
+    }
+);
+
+// Get active customers
+export const getActiveCustomers = asyncHandler(
+    async (req, res) => {
+        const active = customerService.getActiveCustomers();
+        res.status(200).json({
+            success: true,
+            data: active
         });
     }
 );
@@ -27,8 +41,11 @@ export const getCustomerById = asyncHandler(
 // Create customer
 export const createCustomer = asyncHandler(
     async (req, res) => {
-        res.status(200).json({
+        const newCustomer = customerService.createCustomer(req.body);
+        res.status(201).json({
             success: true,
+            message: "Customer created successfully",
+            data: newCustomer
         });
     }
 );
@@ -36,8 +53,12 @@ export const createCustomer = asyncHandler(
 // Update customer
 export const updateCustomer = asyncHandler(
     async (req, res) => {
+        const {id} = req.params;
+        const modified = customerService.updateCustomer(Number(id), req.body);
         res.status(200).json({
             success: true,
+            message: 'Customer data updated successfully',
+            data: modified
         });
     }
 );
@@ -45,8 +66,11 @@ export const updateCustomer = asyncHandler(
 // Delete customer
 export const deleteCustomer = asyncHandler(
     async (req, res) => {
+        const {id} = req.params;
+        customerService.deleteCustomer(Number(id));
         res.status(200).json({
             success: true,
+            message: 'Customer deleted successfully'
         });
     }
 );
@@ -54,8 +78,12 @@ export const deleteCustomer = asyncHandler(
 // Search
 export const searchCustomers = asyncHandler(
     async (req, res) => {
+        const {keyword=""} = req.query;
+        const datas = customerService.searchCustomers(keyword);
         res.status(200).json({
             success: true,
+            count: datas.length,
+            data: datas
         });
     }
 );
@@ -63,8 +91,10 @@ export const searchCustomers = asyncHandler(
 // Stats
 export const getCustomerStats = asyncHandler(
     async (req, res) => {
+        const stats = customerService.getCustomerStats();
         res.status(200).json({
             success: true,
+            data: stats
         });
     }
 );
@@ -72,8 +102,24 @@ export const getCustomerStats = asyncHandler(
 // Paginated
 export const getPaginatedCustomers = asyncHandler(
     async (req, res) => {
+        if(req.query.all === "true") {
+            const dump = customerService.getAllCustomers();
+            return res.status(200).json({
+                success: true,
+                count: dump.length,
+                data: dump
+            });
+        }
+
+        const page = Number(req.query.page) || 1;
+        const limit = Number(req.query.limit) || 10;
+
+        const result = customerService.getPaginatedCustomers(page, limit);
+
         res.status(200).json({
             success: true,
+            count: result.length,
+            data: result
         });
     }
 );
@@ -81,8 +127,10 @@ export const getPaginatedCustomers = asyncHandler(
 // Top
 export const getTopCustomers = asyncHandler(
     async (req, res) => {
+        const top = customerService.getTopCustomers();
         res.status(200).json({
             success: true,
+            data: top
         });
     }
 );
@@ -90,8 +138,11 @@ export const getTopCustomers = asyncHandler(
 // With due
 export const getCustomersWithDue = asyncHandler(
     async (req, res) => {
+        const due = customerService.getCustomersWithDue();
         res.status(200).json({
             success: true,
+            count: due.length,
+            data: due
         });
     }
 );
@@ -99,8 +150,11 @@ export const getCustomersWithDue = asyncHandler(
 // Summary
 export const getCustomerSummary = asyncHandler(
     async (req, res) => {
+        const {id} = req.params;
+        const record = customerService.getCustomerSummary(Number(id));
         res.status(200).json({
             success: true,
+            data: record
         });
     }
 );
@@ -108,8 +162,10 @@ export const getCustomerSummary = asyncHandler(
 // Report
 export const getCustomerReport = asyncHandler(
     async (req, res) => {
+        const report = customerService.getCustomerReport();
         res.status(200).json({
             success: true,
+            data: report
         });
     }
 );
