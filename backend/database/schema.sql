@@ -59,7 +59,10 @@ CREATE TABLE IF NOT EXISTS customers (
     customer_code TEXT UNIQUE,
     name TEXT NOT NULL,
     phone TEXT,
+    email TEXT,
+    city TEXT,
     address TEXT,
+    status TEXT DEFAULT 'ACTIVE',
     total_purchase REAL DEFAULT 0,
     pending_due REAL DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
