@@ -42,6 +42,14 @@
 // Get report
 
 
+// GET /api/sales/:id/invoice
+// Get invoice to print
+
+
+// GET /api/sales/:id/pdf
+// Get invoice to share
+
+
 // GET /api/sales/top-medicines
 // Get top medicines
 
