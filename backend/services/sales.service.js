@@ -52,7 +52,7 @@ export const getSaleById = (id) => {
 
     return {
         ...sale,
-        items
+        item
     };
 };
 
@@ -67,7 +67,7 @@ export const createSale = (saleData) => {
             invoice_number,
             customer_name,
             customer_phone,
-            payement_type = "CASH",
+            payment_type = "CASH",
             sale_type = "RETAIL",
             discount = 0,
             paid_amount = 0,
@@ -78,7 +78,7 @@ export const createSale = (saleData) => {
             SELECT * 
             FROM customers 
             WHERE 
-                name = ?,
+                name = ?
                 OR phone = ?
         `).get(
             customer_name,
@@ -164,7 +164,7 @@ export const createSale = (saleData) => {
                 invoice_number,
                 customer_id,
                 sale_type,
-                payement_type,
+                payment_type,
                 subtotal,
                 discount,
                 gst,
@@ -178,10 +178,10 @@ export const createSale = (saleData) => {
             invoice_number,
             customer.id,
             sale_type,
-            payement_type,
+            payment_type,
             subtotal,
             discount,
-            get,
+            gst,
             totalAmount,
             paid_amount,
             dueAmount,
@@ -243,7 +243,7 @@ export const createSale = (saleData) => {
         db.prepare(`
             UPDATE customers
             SET 
-                total_purchase = total_purchase + ?
+                total_purchase = total_purchase + ?,
                 pending_due = pending_due + ?
             
             WHERE id = ?
@@ -397,7 +397,7 @@ export const getSalesStats = () => {
 };
 
 // Get today sales
-export const getTodalSales = () => {
+export const getTodaySales = () => {
     return db.prepare(`
         SELECT 
             COUNT(*) totalSales,
@@ -467,8 +467,8 @@ export const updateSalePayment = (saleId, amount) => {
     db.prepare(`
         UPDATE sales
         SET 
-            paid_amount = ?
-            due_amount = ?
+            paid_amount = ?,
+            due_amount = ?,
             status = ?
         WHERE id = ?
     `).run(
@@ -517,11 +517,10 @@ export const markSalePaid = (saleId) => {
 
     db.prepare(`
         UPDATE customers
-        SET 
-            pending_due = pending_due - ?
+        SET pending_due = pending_due - ?
         WHERE id = ?
     `).run(
-        sale.total_amount,
+        sale.due_amount,
         sale.customer_id
     );
 };
@@ -592,6 +591,8 @@ export const getTopSellingMedicines = () => {
             SUM(si.quantity) quantitySold,
             SUM(si.total) totalRevenue
         FROM sales s
+        JOIN sale_items si 
+        ON s.id = si.sale_id
         JOIN medicines m
         ON si.medicine_id = m.id
         GROUP BY m.id
