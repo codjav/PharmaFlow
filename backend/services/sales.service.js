@@ -1,6 +1,6 @@
 import db from "../config/db.js";
-import AppError from "../utils/AppError.js"
-import {validateSales} from "../validators/sales.validator.js"
+import AppError from "../utils/AppError.js";
+import {validateSales} from "../validators/sales.validator.js";
 
 // GET     /api/sales
 // Get all sales
