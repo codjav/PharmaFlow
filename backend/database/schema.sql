@@ -152,6 +152,21 @@ CREATE TABLE IF NOT EXISTS settings (
     phone TEXT,
     email TEXT,
     address TEXT,
-    theme TEXT DEFAULT 'LIGHT'
+    gst_number TEXT,
+    drug_license_number TEXT,
+    invoice_prefix TEXT DEFAULT 'INV',
+    purchase_prefix TEXT DEFAULT 'PUR',
+    currency TEXT DEFAULT '₹',
+    theme TEXT DEFAULT 'LIGHT',
+    printer_type TEXT DEFAULT 'THERMAL',
+    default_printer TEXT,
+    invoice_size TEXT DEFAULT 'THERMAL',
+    show_logo INTEGER DEFAULT 1,
+    show_gst INTEGER DEFAULT 1,
+    footer_message TEXT DEFAULT 'Thank You For Visiting',
+    auto_backup INTEGER DEFAULT 1,
+    backup_location TEXT,
+    backup_frequency TEXT DEFAULT 'DAILY',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
