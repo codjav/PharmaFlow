@@ -170,3 +170,9 @@ CREATE TABLE IF NOT EXISTS settings (
     created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS backup_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    file_name TEXT,
+    file_path TEXT,
+    backup_date TEXT DEFAULT CURRENT_TIMESTAMP
+)
