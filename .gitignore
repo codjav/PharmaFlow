@@ -51,6 +51,8 @@ Thumbs.db
 *.sqlite
 *.sqlite3
 *.db
+*.db-shm
+*.db-wal
 
 # =========================
 # 🔐 CACHE & TEMP FILES

@@ -6,7 +6,8 @@ import {
     getExpiredMedicines,
     getCustomerDueAlerts,
     getSupplierDueAlerts,
-    getAlertSummary
+    getAlertSummary,
+    get90ExpiryMedicines
 } from "../controllers/alert.controller.js";
 
 const router = express.Router();

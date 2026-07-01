@@ -12,7 +12,7 @@ import {
     updatePurchasePayment,
     markPurchasePaid,
     getPurchaseReport
-} from '../controllers/purchaseController.js';
+} from '../controllers/purchase.controller.js';
 
 const router = express.Router();
 

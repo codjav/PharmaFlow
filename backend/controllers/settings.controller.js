@@ -1,5 +1,5 @@
-import * as settingService from '../services/settingService.js';
-import asyncHandler from '../middlewares/asyncHandler.js';
+import * as settingService from '../services/settings.service.js';
+import asyncHandler from '../utils/asyncHandler.js';
 import AppError from '../utils/AppError.js';
 
 export const getSystemSettings = asyncHandler(async (req, res) => {

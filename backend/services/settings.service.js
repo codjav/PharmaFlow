@@ -1,5 +1,5 @@
 import db from "../config/db.js"
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import AppError from "../utils/AppError.js"
 import fs from "fs";
 import path from "path";
@@ -283,7 +283,7 @@ export const restoreBackup = (backupPath) => {
     if (!fs.existsSync(backupPath)) {
         throw new AppError("Target system file archive backup variant layout not found", 404);
     }
-    
+
     fs.copyFileSync(backupPath, DATABASE_SOURCE_PATH);
 };
 

@@ -5,7 +5,7 @@ import {
     getPrinterConfig, updatePrinterConfig, getInvoiceConfig,
     updateInvoiceConfig, getBackupConfig, updateBackupConfig,
     commitSnapshotBackup, commitSnapshotRestore, getBackupLogsHistory
-} from '../controllers/settingController.js';
+} from '../controllers/settings.controller.js';
 
 const router = express.Router();
 
