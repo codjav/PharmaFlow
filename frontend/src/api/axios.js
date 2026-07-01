@@ -18,6 +18,10 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        if(error.response) {
+            console.error(error.response.data);
+        }
+        
         return Promise.reject(error);
     }
 );

@@ -1,11 +1,11 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
-import DashboardLayout from "../layouts/DashboardLayout";
+import DashboardLayout from "@/layouts/DashboardLayout";
 
-import LoginPage from "../pages/Login/LoginPage";
-import DashboardPage from "../pages/Dashboard/DashboardPage";
+import LoginPage from "@/pages/Login/LoginPage";
+import DashboardPage from "@/pages/Dashboard/DashboardPage";
 
-function AppRoutes() {
+function AppRoutes = () => {
     return (
         <Routes>
             <Route path="/" element={<LoginPage />} />
