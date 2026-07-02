@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-const Textarea = ({
+const TextArea = ({
     label,
     error,
     required = false,
@@ -38,4 +38,4 @@ const Textarea = ({
     );
 };
 
-export default Textarea;
+export default TextArea;
