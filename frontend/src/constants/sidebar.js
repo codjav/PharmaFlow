@@ -10,51 +10,52 @@ import {
     Settings,
     LogOut
 } from "lucide-react";
+import ROUTES from "./routes";
 
 export const SIDEBAR_ITEMS = [
     {
         title: "Dashboard",
-        path: "/dashboard",
+        path: ROUTES.DASHBOARD,
         icon: LayoutDashboard
     },
     {
         title: "Medicine",
-        path: "/medicine",
+        path: ROUTES.MEDICINE,
         icon: Pill
     },
     {
         title: "Supplier",
-        path: "/supplier",
+        path: ROUTES.SUPPLIER,
         icon: Truck
     },
     {
         title: "Customer",
-        path: "/customer",
+        path: ROUTES.CUSTOMER,
         icon: Users
     },
     {
         title: "Purchase",
-        path: "/purchase",
+        path: ROUTES.PURCHASE,
         icon: ShoppingCart
     },
     {
         title: "Sales",
-        path: "/sales",
+        path: ROUTES.SALES,
         icon: Receipt
     },
     {
         title: "Reports",
-        path: "/reports",
+        path: ROUTES.REPORTS,
         icon: FileText
     },
     {
         title: "Alerts",
-        path: "/alerts",
+        path: ROUTES.ALERTS,
         icon: TriangleAlert
     },
     {
         title: "Settings",
-        path: "/settings",
+        path: ROUTES.SETTINGS,
         icon: Settings
     },
     {
