@@ -5,7 +5,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import LoginPage from "@/pages/Login/LoginPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
 
-function AppRoutes = () => {
+function AppRoutes() {
     return (
         <Routes>
             <Route path="/" element={<LoginPage />} />
