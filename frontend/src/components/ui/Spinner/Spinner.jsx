@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 const Spinner = ({
     className,
-    size = {20}
+    size = 20
 }) => {
     return (
         <Loader2
