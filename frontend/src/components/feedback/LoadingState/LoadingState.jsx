@@ -1,13 +1,11 @@
-import { Spinner } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const LoadingState = () => {
   return (
-    <div>
-      <div className="flex h-80 items-center justify-center">
 
-            <Spinner size={40}/>
+    <div className="flex h-80 items-center justify-center">
 
-        </div>
+      <Loader2 size={40} className="animate-spin text-indigo-600" />
     </div>
   );
 };
