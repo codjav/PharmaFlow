@@ -1,6 +1,6 @@
 import { cn } from "@/lib/cn";
 
-const input = ({
+const Input = ({
     label,
     error,
     required = false,
@@ -77,4 +77,4 @@ const input = ({
     )
 }
 
-export default input;
+export default Input;
