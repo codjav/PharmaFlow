@@ -3,75 +3,48 @@ import api from "@/api/axios";
 const dashboardApi = {
 
     getStats: async () => {
-
-        const response = await api.get("/dashboard/stats");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/stats");
+        return data.data;
     },
 
     getRecentSales: async () => {
-
-        const response = await api.get("/dashboard/recent-sales");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/recent-sales");
+        return data.data;
     },
 
     getRecentPurchases: async () => {
-
-        const response = await api.get("/dashboard/recent-purchases");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/recent-purchases");
+        return data.data;
     },
 
     getTopMedicines: async () => {
-
-        const response = await api.get("/dashboard/top-medicines");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/top-medicines");
+        return data.data;
     },
 
     getTopCustomers: async () => {
-
-        const response = await api.get("/dashboard/top-customers");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/top-customers");
+        return data.data;
     },
 
     getLowStock: async () => {
-
-        const response = await api.get("/dashboard/low-stock");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/low-stock");
+        return data.data;
     },
 
     getNearExpiry: async () => {
-
-        const response = await api.get("/dashboard/near-expiry");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/near-expiry");
+        return data.data;
     },
 
     getMonthlySales: async () => {
-
-        const response = await api.get("/dashboard/monthly-sales");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/monthly-sales");
+        return data.data.salesTrend;
     },
 
     getMonthlyPurchases: async () => {
-
-        const response = await api.get("/dashboard/monthly-purchases");
-
-        return response.data;
-
+        const { data } = await api.get("/dashboard/monthly-purchases");
+        return data.data.purchaseTrend;
     }
 
 };

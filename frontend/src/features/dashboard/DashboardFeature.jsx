@@ -8,7 +8,6 @@ import LowStock from "./components/LowStock";
 import NearExpiry from "./components/NearExpiry";
 
 import LoadingState from "@/components/feedback/LoadingState";
-
 import useDashboard from "./hooks/useDashboard";
 
 const DashboardFeature = () => {
@@ -37,8 +36,8 @@ const DashboardFeature = () => {
             />
 
             <DashboardCharts
-                sales={monthlySales.data}
-                purchases={monthlyPurchases.data}
+                sales={monthlySales.data ?? []}
+                purchases={monthlyPurchases.data ?? []}
                 loading={
                     monthlySales.isLoading ||
                     monthlyPurchases.isLoading
@@ -48,12 +47,12 @@ const DashboardFeature = () => {
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 <RecentSales
-                    data={recentSales.data}
+                    data={recentSales.data ?? []}
                     loading={recentSales.isLoading}
                 />
 
                 <RecentPurchases
-                    data={recentPurchases.data}
+                    data={recentPurchases.data ?? []}
                     loading={recentPurchases.isLoading}
                 />
 
@@ -62,12 +61,12 @@ const DashboardFeature = () => {
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 <TopMedicines
-                    data={topMedicines.data}
+                    data={topMedicines.data ?? []}
                     loading={topMedicines.isLoading}
                 />
 
                 <TopCustomers
-                    data={topCustomers.data}
+                    data={topCustomers.data ?? []}
                     loading={topCustomers.isLoading}
                 />
 
@@ -76,12 +75,12 @@ const DashboardFeature = () => {
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
 
                 <LowStock
-                    data={lowStock.data}
+                    data={lowStock.data ?? []}
                     loading={lowStock.isLoading}
                 />
 
                 <NearExpiry
-                    data={nearExpiry.data}
+                    data={nearExpiry.data ?? []}
                     loading={nearExpiry.isLoading}
                 />
 
@@ -89,6 +88,7 @@ const DashboardFeature = () => {
 
         </div>
     );
+
 };
 
 export default DashboardFeature;
