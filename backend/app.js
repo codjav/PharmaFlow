@@ -11,6 +11,7 @@ import alertRoutes from "./routes/alert.routes.js";
 import reportRoutes from "./routes/report.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
 import settingsRoutes from "./routes/settings.routes.js";
+import categoryRoutes from "./routes/category.routes.js";
 
 import errorMiddleware from "./middleware/error.middleware.js";
 import notFoundMiddleware from "./middleware/notFound.middleware.js";
@@ -30,6 +31,7 @@ app.use("/api/alert", alertRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/category", categoryRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);

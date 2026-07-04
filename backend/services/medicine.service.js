@@ -262,7 +262,7 @@ export const getPaginatedMedicines = (
         SELECT 
             m.*,
             c.name AS category_name,
-            s.supplier_name AS supplier_name
+            s.name AS supplier_name
         FROM medicines m
         LEFT JOIN categories c 
             ON m.category_id = c.id
