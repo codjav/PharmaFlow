@@ -119,7 +119,7 @@ export const getPaginatedSuppliers = asyncHandler(
 export const getSupplierSummary = asyncHandler(
     async (req, res) => {
         const summary =
-            supplierStatsService.getSupplierSummary(
+            supplierService.getSupplierSummary(
                 req.params.id
             );
         res.status(200).json({
@@ -133,7 +133,7 @@ export const getSupplierSummary = asyncHandler(
 export const getSuppliersWithDue = asyncHandler(
     async (req, res) => {
         const suppliers =
-            supplierStatsService.getSuppliersWithDue();
+            supplierService.getSuppliersWithDue();
         res.status(200).json({
             success: true,
             count: suppliers.length,

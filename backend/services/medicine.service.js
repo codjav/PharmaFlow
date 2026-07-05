@@ -184,14 +184,17 @@ export const searchMedicines = (keyword = "") => {
     return db.prepare(`
         SELECT 
             m.*,
-            c.name AS category_name 
+            c.name AS category_name,
+            s.name AS supplier_name
         FROM medicines m
         LEFT JOIN categories c
             ON m.category_id = c.id
+        LEFT JOIN suppliers s
+            ON m.supplier_id = s.id
         WHERE 
             m.name LIKE ?
             OR m.company LIKE ?
-            OR barcode LIKE ?
+            OR m.barcode LIKE ?
             OR c.name LIKE ?
     `).all(
         searchPattern,
@@ -237,9 +240,14 @@ export const get90ExpiryMedicines = () => {
 // Stock Adjustment 
 export const adjustStock = (id, quantity) => {
     const medicine = getMedicineById(id);
-    if (!medicine) {
-        throw new Error(`Medicine with ID ${id} not found.`);
+
+    if (medicine.quantity + quantity < 0) {
+        throw new AppError(
+            "Stock adjustment cannot make the quantity negative",
+            400
+        );
     }
+
     db.prepare(`
         UPDATE medicines
         SET quantity = quantity + ?

@@ -89,22 +89,20 @@ export const adjustStock = asyncHandler(async (req, res, next) => {
     const { id } = req.params;
     const quantity = Number(req.body.quantity);
 
-    if (isNaN(quantity) || quantity === 0) {
-        return next(new AppError('Please provide a valid non-zero adjustment quantity', 400));
+    if (!Number.isInteger(quantity) || quantity === 0) {
+        return next(new AppError(
+            "Please provide a non-zero whole-number adjustment quantity",
+            400
+        ));
     }
 
-    try {
-        const updatedMedicine = medicineService.adjustStock(Number(id), quantity);
-        
-        res.status(200).json({
-            success: true,
-            message: 'Stock level adjustment calculation performed successfully',
-            data: updatedMedicine
-        });
-    } catch (error) {
-        // Intercept target missing exceptions thrown by model constraint checker
-        return next(new AppError(error.message, 404));
-    }
+    const updatedMedicine = medicineService.adjustStock(Number(id), quantity);
+
+    res.status(200).json({
+        success: true,
+        message: "Stock updated successfully",
+        data: updatedMedicine
+    });
 });
 
 // Get paginated medicines
