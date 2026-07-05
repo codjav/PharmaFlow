@@ -1,11 +1,7 @@
-import React from 'react'
+import MedicineFeature from "@/features/medicine";
 
 const MedicinePage = () => {
-  return (
-    <div>
-      Medicine
-    </div>
-  )
-}
+    return <MedicineFeature />;
+};
 
-export default MedicinePage
+export default MedicinePage;
