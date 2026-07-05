@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS purchases (
 );
 
 
-CREATE TABLE purchase_items (
+CREATE TABLE IF NOT EXISTS purchase_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     purchase_id INTEGER,
     medicine_id INTEGER,

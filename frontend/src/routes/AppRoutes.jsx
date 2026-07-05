@@ -5,7 +5,9 @@ import ProtectedRoute from "./ProtectedRoute";
 
 import LoginPage from "@/pages/Login/LoginPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
-import MedicinePage from "@/pages/Medicine/MedicinePage"
+import MedicinePage from "@/pages/Medicine/MedicinePage";
+import SupplierPage from "@/pages/Supplier/SupplierPage";
+
 
 function AppRoutes() {
     return (
@@ -32,6 +34,10 @@ function AppRoutes() {
                 <Route
                     path="/medicine"
                     element={<MedicinePage />}
+                />
+                <Route
+                    path="/supplier"
+                    element={<SupplierPage />}
                 />
             </Route>
 

@@ -12,6 +12,7 @@ import DataTable from "@/components/tables/DataTable";
 import { medicineColumns } from "./medicine.columns";
 import useMedicineMutation from "./useMedicineMutation";
 import useMedicines from "./useMedicines";
+import categoryService from "../category/category.service";
 
 const FORM_DEFAULTS = {
   name: "",
@@ -64,7 +65,10 @@ const MedicineFeature = () => {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [categoryName, setCategoryName] = useState("");
+  const [creatingCategory, setCreatingCategory] = useState(false);
 
+  const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [deleteMedicine, setDeleteMedicine] = useState(null);
@@ -90,6 +94,8 @@ const MedicineFeature = () => {
     register,
     handleSubmit,
     reset,
+    getValues,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: FORM_DEFAULTS,
@@ -103,18 +109,32 @@ const MedicineFeature = () => {
     return () => window.clearTimeout(timeoutId);
   }, [search]);
 
+  const loadCategories = async () => {
+    try {
+      const categories = await categoryService.getCategories();
+
+      setCategories(categories);
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Unable to load categories",
+      );
+    }
+  };
+
   useEffect(() => {
     let active = true;
 
     const loadDropdowns = async () => {
       try {
-        const [categoryRes, supplierRes] = await Promise.all([
-          api.get("/categories"),
-          api.get("/suppliers", { params: { all: true } }),
-        ]);
+        await loadCategories();
+
+        const supplierRes = await api.get("/suppliers", {
+          params: {
+            all: true,
+          },
+        });
 
         if (active) {
-          setCategories(categoryRes.data.data ?? []);
           setSuppliers(supplierRes.data.data ?? []);
         }
       } catch (error) {
@@ -174,6 +194,38 @@ const MedicineFeature = () => {
   const handleSearchChange = (event) => {
     setSearch(event.target.value);
     setPage(1);
+  };
+
+  const createCategory = async () => {
+    if (!categoryName.trim()) {
+      toast.error("Category name is required");
+
+      return;
+    }
+
+    try {
+      setCreatingCategory(true);
+
+      const category = await categoryService.createCategory(
+        categoryName.trim(),
+      );
+
+      await loadCategories();
+
+      setValue("category_id", String(category.id));
+
+      setCategoryName("");
+
+      setOpenCategoryDialog(false);
+
+      toast.success("Category created successfully");
+    } catch (error) {
+      toast.error(
+        error?.response?.data?.message || "Unable to create category",
+      );
+    } finally {
+      setCreatingCategory(false);
+    }
   };
 
   const onSubmit = async (formData) => {
@@ -398,18 +450,29 @@ const MedicineFeature = () => {
                     >
                       Category
                     </label>
-                    <select
-                      id="medicine-category"
-                      className="h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                      {...register("category_id")}
-                    >
-                      <option value="">Select Category</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="flex gap-2">
+                      <select
+                        id="medicine-category"
+                        className="flex-1 h-10 w-full rounded-xl border border-slate-300 bg-white px-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                        {...register("category_id")}
+                      >
+                        <option value="">Select Category</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 h-10 rounded-xl border border-slate-300 bg-white px-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 text-blue-600 hover:text-blue-700 hover:cursor-pointer"
+                        onClick={() => setOpenCategoryDialog(true)}
+                      >
+                        Add Category
+                      </Button>
+                    </div>
                   </div>
 
                   <div className="space-y-2">
@@ -547,16 +610,81 @@ const MedicineFeature = () => {
                 <Button
                   type="button"
                   variant="outline"
+                  className="hover:cursor-pointer"
                   disabled={formIsPending}
                   onClick={closeFormDialog}
                 >
                   Cancel
                 </Button>
-                <Button type="submit" loading={formIsPending}>
+                <Button
+                  type="submit"
+                  loading={formIsPending}
+                  className="hover:cursor-pointer"
+                >
                   {editingMedicine ? "Update Medicine" : "Save Medicine"}
                 </Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {openCategoryDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget && !creatingCategory) {
+              setOpenCategoryDialog(false);
+            }
+          }}
+        >
+          <div className="w-full max-w-md rounded-xl bg-white p-6">
+            <h2 className="text-xl font-semibold">Add Category</h2>
+
+            <div className="mt-6">
+              <Input
+                label="Category Name"
+
+                placeholder="Enter category"
+
+                value={categoryName}
+
+                onChange={(e) => setCategoryName(e.target.value)}
+
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+
+                    createCategory();
+                  }
+                }}
+              />
+            </div>
+
+            <div className="mt-8 flex justify-end gap-4">
+              <Button
+                variant="outline"
+
+                disabled={creatingCategory}
+
+                onClick={() => {
+                  setOpenCategoryDialog(false);
+
+                  setCategoryName("");
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                loading={creatingCategory}
+
+                onClick={createCategory}
+              >
+                Save
+              </Button>
+            </div>
           </div>
         </div>
       )}

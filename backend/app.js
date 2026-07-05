@@ -31,7 +31,7 @@ app.use("/api/alert", alertRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/settings", settingsRoutes);
-app.use("/api/category", categoryRoutes);
+app.use("/api/categories", categoryRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
