@@ -6,9 +6,12 @@ const useCustomers = ({ page, limit, search }) => {
   return useQuery({
     queryKey: ["customers", page, limit, search],
 
-    queryFn: () => {
+    queryFn: async () => {
       if (search) {
-        return customerService.searchCustomers(search);
+        return {
+          customers: await customerService.searchCustomers(search),
+          pagination: null,
+        };
       }
 
       return customerService.getCustomers(page, limit);

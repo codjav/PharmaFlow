@@ -39,7 +39,8 @@ export const createCustomer = (customerData) => {
         phone,
         email,
         city,
-        address
+        address,
+        status = "ACTIVE"
     } = customerData;
 
     const existingCustomer = db.prepare(`
@@ -59,16 +60,18 @@ export const createCustomer = (customerData) => {
             phone,
             email,
             city,
-            address
+            address,
+            status
         )
-        VALUES(?,?,?,?,?,?)
+        VALUES(?,?,?,?,?,?,?)
     `).run(
         customer_code,
         name,
         phone,
         email,
         city,
-        address
+        address,
+        status
     )
 
     return getCustomerById(

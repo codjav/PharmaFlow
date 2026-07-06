@@ -1,8 +1,13 @@
 import api from "@/api/axios";
 
 const customerApi = {
-    getCustomers(params) {
-        return api.get("/customers", { params });
+    getCustomers(page = 1, limit = 10) {
+        return api.get("/customers", {
+            params: {
+                page,
+                limit,
+            },
+        });
     },
 
     searchCustomers(keyword) {
@@ -20,11 +25,11 @@ const customerApi = {
     },
 
     updateCustomer(id, data) {
-        return api.put(`/customers/${id}`, data)
+        return api.put(`/customers/${id}`, data);
     },
 
     deleteCustomer(id) {
-        return api.delete(`/customers/${id}`)
+        return api.delete(`/customers/${id}`);
     }
 };
 

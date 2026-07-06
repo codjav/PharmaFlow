@@ -1,11 +1,8 @@
 import customerApi from "./customer.api";
 
 const customerService = {
-  async getCustomers(page, limit) {
-    const response = await customerApi.getCustomers({
-      page,
-      limit,
-    });
+  async getCustomers(page = 1, limit = 10) {
+    const response = await customerApi.getCustomers(page, limit);
 
     return {
       customers: response.data.data,
