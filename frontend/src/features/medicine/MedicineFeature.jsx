@@ -94,7 +94,6 @@ const MedicineFeature = () => {
     register,
     handleSubmit,
     reset,
-    getValues,
     setValue,
     formState: { errors },
   } = useForm({

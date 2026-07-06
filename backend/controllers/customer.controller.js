@@ -102,25 +102,34 @@ export const getCustomerStats = asyncHandler(
 // Paginated
 export const getPaginatedCustomers = asyncHandler(
     async (req, res) => {
+
         if(req.query.all === "true") {
+
             const dump = customerService.getAllCustomers();
+
             return res.status(200).json({
                 success: true,
                 count: dump.length,
                 data: dump
             });
+
         }
 
         const page = Number(req.query.page) || 1;
         const limit = Number(req.query.limit) || 10;
 
-        const result = customerService.getPaginatedCustomers(page, limit);
+        const result =
+            customerService.getPaginatedCustomers(
+                page,
+                limit
+            );
 
         res.status(200).json({
             success: true,
-            count: result.length,
-            data: result
+            data: result.customers,
+            pagination: result.pagination
         });
+
     }
 );
 
