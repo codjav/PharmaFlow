@@ -7,6 +7,7 @@ import LoginPage from "@/pages/Login/LoginPage";
 import DashboardPage from "@/pages/Dashboard/DashboardPage";
 import MedicinePage from "@/pages/Medicine/MedicinePage";
 import SupplierPage from "@/pages/Supplier/SupplierPage";
+import CustomerPage from "@/pages/Customer/CustomerPage";
 
 
 function AppRoutes() {
@@ -38,6 +39,10 @@ function AppRoutes() {
                 <Route
                     path="/supplier"
                     element={<SupplierPage />}
+                />
+                <Route
+                    path="/customer"
+                    element={<CustomerPage />}
                 />
             </Route>
 
