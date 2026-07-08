@@ -34,23 +34,41 @@ CREATE TABLE IF NOT EXISTS categories (
 CREATE TABLE IF NOT EXISTS medicines (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    batch_number TEXT NOT NULL,
     category_id INTEGER,
     company TEXT NOT NULL,
     supplier_id INTEGER,
     barcode TEXT UNIQUE,
-    mrp REAL NOT NULL,
-    dr_price REAL NOT NULL,
-    price REAL NOT NULL,
-    quantity INTEGER NOT NULL DEFAULT 0 CHECK(quantity >= 0),
     minimum_stock INTEGER DEFAULT 5,
-    expiry_date TEXT NOT NULL,
-    image TEXT,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) 
+    FOREIGN KEY (category_id)
         REFERENCES categories(id),
-    FOREIGN KEY (supplier_id) 
+    FOREIGN KEY (supplier_id)
         REFERENCES suppliers(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS medicine_batches (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    medicine_id INTEGER NOT NULL,
+    supplier_id INTEGER NOT NULL,
+    batch_number TEXT NOT NULL,
+    purchase_id INTEGER,
+    expiry_date TEXT NOT NULL,
+    mrp REAL NOT NULL,
+    purchase_price REAL NOT NULL,
+    dr_price REAL NOT NULL,
+    selling_price REAL NOT NULL,
+    quantity INTEGER NOT NULL CHECK(quantity >= 0),
+    status TEXT DEFAULT 'ACTIVE',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(medicine_id, supplier_id, batch_number),
+    FOREIGN KEY (medicine_id)
+        REFERENCES medicines(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (supplier_id)
+        REFERENCES suppliers(id),
+    FOREIGN KEY (purchase_id)
+        REFERENCES purchases(id)
 );
 
 
@@ -85,14 +103,21 @@ CREATE TABLE IF NOT EXISTS purchases (
 
 CREATE TABLE IF NOT EXISTS purchase_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    purchase_id INTEGER,
-    medicine_id INTEGER,
-    quantity INTEGER,
-    purchase_price REAL,
-    subtotal REAL,
-    FOREIGN KEY(purchase_id)
-        REFERENCES purchases(id),
-    FOREIGN KEY(medicine_id)
+    purchase_id INTEGER NOT NULL,
+    medicine_id INTEGER NOT NULL,
+    medicine_name TEXT NOT NULL,
+    batch_number TEXT NOT NULL,
+    expiry_date TEXT NOT NULL,
+    mrp REAL NOT NULL,
+    purchase_price REAL NOT NULL,
+    dr_price REAL NOT NULL,
+    selling_price REAL NOT NULL,
+    quantity INTEGER NOT NULL,
+    subtotal REAL NOT NULL,
+    FOREIGN KEY (purchase_id)
+        REFERENCES purchases(id)
+        ON DELETE CASCADE,
+    FOREIGN KEY (medicine_id)
         REFERENCES medicines(id)
 );
 
@@ -116,32 +141,37 @@ CREATE TABLE IF NOT EXISTS sales (
 );
 
 
+
 CREATE TABLE IF NOT EXISTS sale_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    sale_id INTEGER,
-    medicine_id INTEGER,
-    batch_number TEXT,
-    expiry_date TEXT,
-    quantity INTEGER,
-    unit_price REAL,
+    sale_id INTEGER NOT NULL,
+    medicine_id INTEGER NOT NULL,
+    batch_id INTEGER NOT NULL,
+    quantity INTEGER NOT NULL,
+    unit_price REAL NOT NULL,
     discount REAL DEFAULT 0,
-    total REAL,
+    total REAL NOT NULL,
     FOREIGN KEY(sale_id)
         REFERENCES sales(id),
     FOREIGN KEY(medicine_id)
-        REFERENCES medicines(id)
+        REFERENCES medicines(id),
+    FOREIGN KEY(batch_id)
+        REFERENCES medicine_batches(id)
 );
 
 
 CREATE TABLE IF NOT EXISTS stock_movements (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    medicine_id INTEGER,
-    movement_type TEXT,
-    quantity INTEGER,
+    medicine_id INTEGER NOT NULL,
+    batch_id INTEGER NOT NULL,
+    movement_type TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
     reference_id INTEGER,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(medicine_id)
-        REFERENCES medicines(id)
+    FOREIGN KEY (medicine_id)
+        REFERENCES medicines(id),
+    FOREIGN KEY (batch_id)
+        REFERENCES medicine_batches(id)
 );
 
 

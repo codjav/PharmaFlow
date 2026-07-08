@@ -11,6 +11,10 @@ const medicineApi = {
     return api.get(`/medicines/${id}`);
   },
 
+  getMedicineBatches(id) {
+    return api.get(`/medicines/${id}/batches`);
+  },
+
   createMedicine(data) {
     return api.post("/medicines", data);
   },
@@ -29,20 +33,8 @@ const medicineApi = {
     });
   },
 
-  adjustStock(id, quantity) {
-    return api.patch(`/medicines/${id}/adjust-stock`, { quantity });
-  },
-
   getLowStock() {
     return api.get("/medicines/low-stock");
-  },
-
-  getNearExpiry() {
-    return api.get("/medicines/near-expiry");
-  },
-
-  get90Expiry() {
-    return api.get("/medicines/90-expiry");
   },
 };
 

@@ -1,6 +1,8 @@
-import dashboardApi from "../api/dashboard.api";
+import dashboardApi from "./dashboard.api";
 
 const dashboardService = {
+
+    getSummary: dashboardApi.getSummary,
 
     getStats: dashboardApi.getStats,
 
@@ -12,9 +14,9 @@ const dashboardService = {
 
     getTopCustomers: dashboardApi.getTopCustomers,
 
-    getLowStock: dashboardApi.getLowStock,
+    getLowStockInventory: dashboardApi.getLowStockInventory,
 
-    getNearExpiry: dashboardApi.getNearExpiry,
+    getExpiringBatches: dashboardApi.getExpiringBatches,
 
     getMonthlySales: dashboardApi.getMonthlySales,
 

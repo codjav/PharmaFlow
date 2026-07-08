@@ -27,13 +27,28 @@ export const getPurchaseById = asyncHandler(
     }
 );
 
+// Get purchase items
+export const getPurchaseItems = asyncHandler(
+    async (req, res) => {
+        const { id } = req.params;
+
+        const items = purchaseService.getPurchaseItems(Number(id));
+
+        res.status(200).json({
+            success: true,
+            count: items.length,
+            data: items
+        });
+    }
+);
+
 // Create new
 export const createPurchase = asyncHandler(
     async (req, res) => {
         const newPurchase = purchaseService.createPurchase(req.body);
-        res.status(200).json({
+        res.status(201).json({
         success: true,
-        message: "Purchase invoice created and inventory tracking logs",
+        message: "Purchase created successfully",
         data: newPurchase
         });
     }
@@ -45,7 +60,7 @@ export const deletePurchase = asyncHandler(
         purchaseService.deletePurchase(Number(req.params.id));
         res.status(200).json({
         success: true,
-        message: "Purchase successfully deleted and stock balances successffully reversed"
+        message: "Purchase deleted successffully"
         });
     }
 );
@@ -53,11 +68,11 @@ export const deletePurchase = asyncHandler(
 // Search
 export const searchPurchases = asyncHandler(
     async (req, res) => {
-        const medicines = purchaseService.searchPurchases(req.query.keyword);
+        const purchases = purchaseService.searchPurchases(req.query.keyword);
         res.status(200).json({
         success: true,
-        count: medicines.length,
-        data: medicines
+        count: purchases.length,
+        data: purchases
         });
     }
 );
@@ -115,7 +130,7 @@ export const getPaginatedPurchases = asyncHandler(
 
 // Update Payment
 export const updatePurchasePayment = asyncHandler(
-    async (req, res) => {
+    async (req, res, next) => {
         const {id} = req.params;
         const amount = Number(req.body.amount);
 

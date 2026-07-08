@@ -5,7 +5,9 @@ import { validatePurchase } from "../validators/purchase.validator.js";
 // GET     /api/purchases
 // Get all purchase
 export const getAllPurchases = () => {
-    return db.prepare(`
+    return db
+        .prepare(
+            `
         SELECT
             p.*,
             s.name supplier_name
@@ -13,13 +15,17 @@ export const getAllPurchases = () => {
         JOIN suppliers s
         ON p.supplier_id = s.id
         ORDER BY p.purchase_date DESC
-    `).all();
+    `,
+        )
+        .all();
 };
 
 // GET     /api/purchases/:id
 // Get purchase by id
 export const getPurchaseById = (id) => {
-    const purchase = db.prepare(`
+    const purchase = db
+        .prepare(
+            `
         SELECT 
             p.*,
             s.name supplier_name
@@ -27,31 +33,39 @@ export const getPurchaseById = (id) => {
         JOIN suppliers s
         ON p.supplier_id = s.id
         WHERE p.id = ?
-    `).get(id);
+    `,
+        )
+        .get(id);
 
     if (!purchase) {
-        throw new AppError(
-            "Purchase not found",
-            404
-        );
+        throw new AppError("Purchase not found", 404);
     }
 
-    const items = db.prepare(`
-        SELECT
-            pi.*,
-            m.name medicine_name
-        FROM purchase_items pi
-        JOIN medicines m
-        ON pi.medicine_id = m.id
-        WHERE pi.purchase_id = ?
-    `).all(id);
+    const items = db
+        .prepare(
+            `
+    SELECT *
+    FROM purchase_items
+    WHERE purchase_id = ?
+    ORDER BY id
+`,
+        )
+        .all(id);
 
     return {
         ...purchase,
-        items
+        items,
     };
+};
 
-}
+export const getPurchaseItems = (purchaseId) => {
+    return db.prepare(`
+        SELECT *
+        FROM purchase_items
+        WHERE purchase_id = ?
+        ORDER BY id
+    `).all(purchaseId);
+};
 
 // POST    /api/purchases
 // Create Purchase
@@ -63,20 +77,20 @@ export const createPurchase = (purchaseData) => {
             invoice_number,
             supplier_id,
             paid_amount = 0,
-            items
+            items,
         } = purchaseData;
 
         let totalAmount = 0;
 
-        items.forEach(item => {
-            totalAmount += 
-                item.quantity *
-                item.purchase_price;
+        items.forEach((item) => {
+            totalAmount += item.quantity * item.purchase_price;
         });
 
-        const dueAmount = totalAmount-paid_amount;
+        const dueAmount = totalAmount - paid_amount;
 
-        const purchaseResult = db.prepare(`
+        const purchaseResult = db
+            .prepare(
+                `
             INSERT INTO purchases(
                 invoice_number,
                 supplier_id,
@@ -86,74 +100,155 @@ export const createPurchase = (purchaseData) => {
                 status
             )
             VALUES (?,?,?,?,?,?)
-        `).run(
-            invoice_number,
-            supplier_id,
-            totalAmount,
-            paid_amount,
-            dueAmount,
-            dueAmount > 0
-                ? "PENDING"
-                : "PAID"
-        );
+        `,
+            )
+            .run(
+                invoice_number,
+                supplier_id,
+                totalAmount,
+                paid_amount,
+                dueAmount,
+                dueAmount > 0 ? "PENDING" : "PAID",
+            );
 
         const purchaseId = purchaseResult.lastInsertRowid;
 
         items.forEach((item) => {
             const subtotal =
-                item.quantity * 
-                item.purchase_price;
+                item.quantity * item.purchase_price;
 
             db.prepare(`
-                INSERT INTO purchase_items(
-                    purchase_id,
-                    medicine_id,
-                    quantity,
-                    purchase_price,
-                    subtotal
-                )
-                VALUES (?,?,?,?,?)
-            `).run(
+        INSERT INTO purchase_items(
+            purchase_id,
+            medicine_id,
+            medicine_name,
+            batch_number,
+            expiry_date,
+            mrp,
+            purchase_price,
+            dr_price,
+            selling_price,
+            quantity,
+            subtotal
+        )
+        VALUES (?,?,?,?,?,?,?,?,?,?,?)
+    `).run(
                 purchaseId,
                 item.medicine_id,
-                item.quantity,
+                item.medicine_name,
+                item.batch_number,
+                item.expiry_date,
+                item.mrp,
                 item.purchase_price,
-                subtotal
-            )
-
-            db.prepare(`
-                UPDATE medicines
-                SET quantity = quantity + ?
-                WHERE id = ?
-            `).run(
+                item.dr_price,
+                item.selling_price,
                 item.quantity,
-                item.medicine_id
+                subtotal
             );
 
+            const existingBatch = db.prepare(`
+                SELECT id
+                FROM medicine_batches
+                WHERE medicine_id = ?
+                  AND supplier_id = ?
+                  AND batch_number = ?
+            `).get(
+                item.medicine_id,
+                supplier_id,
+                item.batch_number
+            );
+
+            if (existingBatch) {
+                db.prepare(`
+                    UPDATE medicine_batches
+                    SET
+                        quantity = quantity + ?,
+                        expiry_date = ?,
+                        mrp = ?,
+                        purchase_price = ?,
+                        dr_price = ?,
+                        selling_price = ?,
+                        status = 'ACTIVE'
+                    WHERE id = ?
+                `).run(
+                    item.quantity,
+                    item.expiry_date,
+                    item.mrp,
+                    item.purchase_price,
+                    item.dr_price,
+                    item.selling_price,
+                    existingBatch.id
+                );
+            } else {
+                db.prepare(`
+                    INSERT INTO medicine_batches(
+                        medicine_id,
+                        supplier_id,
+                        purchase_id,
+                        batch_number,
+                        expiry_date,
+                        mrp,
+                        purchase_price,
+                        dr_price,
+                        selling_price,
+                        quantity,
+                        status
+                    )
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                `).run(
+                    item.medicine_id,
+                    supplier_id,
+                    purchaseId,
+                    item.batch_number,
+                    item.expiry_date,
+                    item.mrp,
+                    item.purchase_price,
+                    item.dr_price,
+                    item.selling_price,
+                    item.quantity,
+                    'ACTIVE'
+                );
+            }
+
+            const batchId = existingBatch
+                ? existingBatch.id
+                : db.prepare(`
+                    SELECT id
+                    FROM medicine_batches
+                    WHERE medicine_id = ?
+                      AND supplier_id = ?
+                      AND batch_number = ?
+                `).get(
+                    item.medicine_id,
+                    supplier_id,
+                    item.batch_number
+                ).id;
+
             db.prepare(`
-                INSERT into stock_movements(
+                INSERT INTO stock_movements(
                     medicine_id,
+                    batch_id,
                     movement_type,
                     quantity,
                     reference_id
                 )
-                VALUES (?,?,?,?)
+                VALUES (?,?,?,?,?)
             `).run(
                 item.medicine_id,
+                batchId,
                 "PURCHASE",
                 item.quantity,
                 purchaseId
             );
         });
 
-        db.prepare(`
+        db.prepare(
+            `
             UPDATE suppliers
             SET pending_due = pending_due + ?
             WHERE id = ?
-        `).run(
-            dueAmount,
-            supplier_id
-        );
+        `,
+        ).run(dueAmount, supplier_id);
 
         return purchaseId;
     });
@@ -164,53 +259,54 @@ export const createPurchase = (purchaseData) => {
 };
 
 // DELETE  /api/purchases/:id
-// Delete purchase 
+// Delete purchase
 export const deletePurchase = (id) => {
-
     const purchase = getPurchaseById(id);
 
-    const transaction =
-        db.transaction(() => {
-            purchase.items.forEach(item => {
-                db.prepare(`
-                    UPDATE medicines
-                    SET quantity = quantity - ?
-                    WHERE id = ?
-                `).run(
-                    item.quantity,
-                    item.medicine_id
-                );
-            });
+    const transaction = db.transaction(() => {
+        db.prepare(`
+            DELETE FROM stock_movements
+            WHERE reference_id = ?
+              AND movement_type = 'PURCHASE'
+        `).run(id);
 
-            db.prepare(`
+        db.prepare(`
+            DELETE FROM medicine_batches
+            WHERE purchase_id = ?
+        `).run(id);
+
+        db.prepare(
+            `
                 DELETE FROM purchase_items
                 WHERE purchase_id = ?
-            `).run(id);
+            `,
+        ).run(id);
 
-            db.prepare(`
+        db.prepare(
+            `
                 UPDATE suppliers
-                SET pending_due = pending_due - purchase.due_amount
+                SET pending_due = pending_due - ?
                 WHERE id = ?
-            `).run(
-                purchase.due_amount,
-                purchase.supplier_id
-            )
+            `,
+        ).run(purchase.due_amount, purchase.supplier_id);
 
-            db.prepare(`
+        db.prepare(
+            `
                 DELETE FROM purchases
                 WHERE id = ?
-            `).run(id);
-        });
+            `,
+        ).run(id);
+    });
 
     transaction();
 };
 
 // GET     /api/purchases/search
 // Search purchase
-export const searchPurchases = (
-    keyword = ""
-) => {
-    return db.prepare(`
+export const searchPurchases = (keyword = "") => {
+    return db
+        .prepare(
+            `
         SELECT
             p.*,
             s.name supplier_name
@@ -220,45 +316,52 @@ export const searchPurchases = (
         WHERE
             p.invoice_number LIKE ?
             OR s.name LIKE ?
-    `).all(
-        `%${keyword}%`,
-        `%${keyword}%`
-    );
+    `,
+        )
+        .all(`%${keyword}%`, `%${keyword}%`);
 };
 
 // GET     /api/purchases/stats
 // Get purchase stats
 export const getPurchaseStats = () => {
-    const totalPurchases =
-        db.prepare(`
+    const totalPurchases = db
+        .prepare(
+            `
             SELECT COUNT(*) total
             FROM purchases
-        `).get();
-    const totalAmount =
-        db.prepare(`
+        `,
+        )
+        .get();
+    const totalAmount = db
+        .prepare(
+            `
             SELECT SUM(total_amount) total
             FROM purchases
-        `).get();
-    const totalDue =
-        db.prepare(`
+        `,
+        )
+        .get();
+    const totalDue = db
+        .prepare(
+            `
             SELECT SUM(due_amount) total
             FROM purchases
-        `).get();
+        `,
+        )
+        .get();
 
     return {
-        totalPurchases:
-            totalPurchases.total,
-        totalAmount:
-            totalAmount.total || 0,
-        totalDue:
-            totalDue.total || 0
+        totalPurchases: totalPurchases.total,
+        totalAmount: totalAmount.total || 0,
+        totalDue: totalDue.total || 0,
     };
 };
 
 // GET     /api/purchases/recent
 // Get recent purchases
 export const getRecentPurchases = () => {
-    return db.prepare(`
+    return db
+        .prepare(
+            `
         SELECT
             p.*,
             s.name supplier_name
@@ -267,31 +370,34 @@ export const getRecentPurchases = () => {
         ON p.supplier_id=s.id
         ORDER BY purchase_date DESC
         LIMIT 5
-    `).all();
+    `,
+        )
+        .all();
 };
 
 // GET     /api/purchases/supplier/:supplierId
 // Get purchase by supplier name or id
-export const getSupplierPurchases = (
-    supplierId
-) => {
-    return db.prepare(`
+export const getSupplierPurchases = (supplierId) => {
+    return db
+        .prepare(
+            `
         SELECT *
         FROM purchases
         WHERE supplier_id=?
         ORDER BY purchase_date DESC
-    `).all(supplierId);
+    `,
+        )
+        .all(supplierId);
 };
 
 // GET /api/purchases?page=1&limit=10
 // Pagination
-export const getPaginatedPurchases = (
-    page = 1,
-    limit = 10
-) => {
-    const offset = (page-1)*limit;
+export const getPaginatedPurchases = (page = 1, limit = 10) => {
+    const offset = (page - 1) * limit;
 
-    const purchases = db.prepare(`
+    const purchases = db
+        .prepare(
+            `
         SELECT 
             p.*,
             s.name supplier_name
@@ -301,15 +407,18 @@ export const getPaginatedPurchases = (
         ORDER BY purchase_date DESC
         LIMIT ?
         OFFSET ?
-    `).all(
-        limit,
-        offset
-    );
+    `,
+        )
+        .all(limit, offset);
 
-    const totalRecords = db.prepare(`
+    const totalRecords = db
+        .prepare(
+            `
         SELECT COUNT(*) total
         FROM purchases
-    `).get();
+    `,
+        )
+        .get();
 
     return {
         purchases,
@@ -317,139 +426,162 @@ export const getPaginatedPurchases = (
             page,
             limit,
             totalRecords: totalRecords.total,
-            totalPages: Math.ceil(
-                totalRecords.total/limit
-            )
-        }
+            totalPages: Math.ceil(totalRecords.total / limit),
+        },
     };
 };
 
 // PATCH   /api/purchases/:id/payment
 // Update Payment
 export const updatePurchasePayment = (purchaseId, amount) => {
-    const purchase = db.prepare(`
+    const purchase = db
+        .prepare(
+            `
         SELECT *
         FROM purchases 
         WHERE id=?
-    `).get(purchaseId);
+    `,
+        )
+        .get(purchaseId);
 
-    if(!purchase) {
-        throw new AppError(
-            "Purchase not found",
-            404
-        );
-    };
+    if (!purchase) {
+        throw new AppError("Purchase not found", 404);
+    }
 
     const newPaidAmount = purchase.paid_amount + amount;
     const newDueAmount = purchase.total_amount - newPaidAmount;
 
-    db.prepare(`
+    db.prepare(
+        `
         UPDATE purchases
         SET 
             paid_amount = ?,
             due_amount = ?,
             status = ?
         WHERE id = ?
-    `).run(
+    `,
+    ).run(
         newPaidAmount,
         newDueAmount,
-        newDueAmount>0 
-            ? "PENDING"
-            : "PAID",
-        purchaseId
+        newDueAmount > 0 ? "PENDING" : "PAID",
+        purchaseId,
     );
 
-    db.prepare(`
+    db.prepare(
+        `
         UPDATE suppliers
         SET
             pending_due = pending_due - ?
         WHERE id = ?
-    `).run(
-        amount,
-        purchase.supplier_id
-    );
+    `,
+    ).run(amount, purchase.supplier_id);
 };
 
 // PATCH   /api/purchases/:id/mark-paid
 // Mark purchase paid
 export const markPurchasePaid = (purchaseId) => {
-    const purchase = db.prepare(`
+    const purchase = db
+        .prepare(
+            `
         SELECT * 
         FROM purchases 
         WHERE id = ?
-    `).get(purchaseId);
+    `,
+        )
+        .get(purchaseId);
 
-    if(!purchase) {
-        throw new AppError(
-            "Purchase not found",
-            404
-        );
+    if (!purchase) {
+        throw new AppError("Purchase not found", 404);
     }
 
-    db.prepare(`
+    db.prepare(
+        `
         UPDATE purchases
         SET
             paid_amount = total_amount,
             due_amount = 0,
             status = 'PAID'
         WHERE id = ?
-    `).run(purchaseId);
+    `,
+    ).run(purchaseId);
 
-    db.prepare(`
+    db.prepare(
+        `
         UPDATE suppliers
         SET 
             pending_due = pending_due - ?
         WHERE id = ?
-    `).run(
-        purchase.due_amount,
-        purchase.supplier_id
-    );
+    `,
+    ).run(purchase.due_amount, purchase.supplier_id);
 };
-
 
 // GET     /api/purchases/report
 // Get purchase report over the time
 export const getPurchaseReport = () => {
-    const todayPurchase = db.prepare(`
+    const todayPurchase = db
+        .prepare(
+            `
         SELECT 
             COALESCE(SUM(total_amount), 0) AS total
         FROM purchases
         WHERE DATE(purchase_date) = DATE('now')
-    `).get();
+    `,
+        )
+        .get();
 
-    const thisMonthPurchase = db.prepare(`
+    const thisMonthPurchase = db
+        .prepare(
+            `
         SELECT 
             COALESCE(SUM(total_amount), 0) AS total
         FROM purchases
         WHERE strftime('%Y-%m', purchase_date)
             = strftime('%Y-%m', 'now')
-    `).get();
+    `,
+        )
+        .get();
 
-    const thisYearPurchase = db.prepare(`
+    const thisYearPurchase = db
+        .prepare(
+            `
         SELECT 
             COALESCE(SUM(total_amount), 0) AS total
         FROM purchases
         WHERE strftime('%Y', purchase_date)
             = strftime('%Y', 'now')
-    `).get();
+    `,
+        )
+        .get();
 
-    const totalPaidAmount = db.prepare(`
+    const totalPaidAmount = db
+        .prepare(
+            `
         SELECT 
             COALESCE(SUM(paid_amount), 0) AS total
         FROM purchases
-    `).get();
+    `,
+        )
+        .get();
 
-    const totalDueAmount = db.prepare(`
+    const totalDueAmount = db
+        .prepare(
+            `
         SELECT 
             COALESCE(SUM(due_amount), 0) AS total
         FROM purchases
-    `).get();
+    `,
+        )
+        .get();
 
-    const totalPurchases = db.prepare(`
+    const totalPurchases = db
+        .prepare(
+            `
         SELECT 
             COALESCE(SUM(total_amount), 0) AS total
         FROM purchases
-    `).get();
+    `,
+        )
+        .get();
 
     return {
         todayPurchase: todayPurchase.total,
@@ -457,6 +589,6 @@ export const getPurchaseReport = () => {
         thisYearPurchase: thisYearPurchase.total,
         totalPaidAmount: totalPaidAmount.total,
         totalDueAmount: totalDueAmount.total,
-        totalPurchases: todayPurchases.total
+        totalPurchases: totalPurchases.total,
     };
 };

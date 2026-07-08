@@ -103,7 +103,7 @@ export const recentPurchaseColumns = [
 export const topMedicineColumns = [
 
     {
-        accessorKey: "name",
+        accessorKey: "medicine_name",
         header: "Medicine",
     },
 
@@ -122,12 +122,12 @@ export const topCustomerColumns = [
     },
 
     {
-        accessorKey: "ordersCount",
+        accessorKey: "total_orders",
         header: "Orders",
     },
 
     {
-        accessorKey: "totalSales",
+        accessorKey: "total_sales",
 
         header: "Total Sales",
 
@@ -143,8 +143,13 @@ export const topCustomerColumns = [
 export const lowStockColumns = [
 
     {
-        accessorKey: "name",
+        accessorKey: "medicine_name",
         header: "Medicine",
+    },
+
+    {
+        accessorKey: "batch_number",
+        header: "Batch",
     },
 
     {
@@ -159,11 +164,16 @@ export const lowStockColumns = [
 
 ];
 
-export const nearExpiryColumns = [
+export const expiringBatchColumns = [
 
     {
-        accessorKey: "name",
+        accessorKey: "medicine_name",
         header: "Medicine",
+    },
+
+    {
+        accessorKey: "batch_number",
+        header: "Batch",
     },
 
     {

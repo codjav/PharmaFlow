@@ -73,8 +73,8 @@ export const getTopCustomers = asyncHandler(async (req, res) => {
 });
 
 
-export const getLowStockMedicines = asyncHandler(async (req, res) => {
-    const alerts = dashboardService.getLowStockMedicines();
+export const getLowStockInventory = asyncHandler(async (req, res) => {
+    const alerts = dashboardService.getLowStockInventory();
     res.status(200).json({
         success: true,
         count: alerts.length,
@@ -83,11 +83,28 @@ export const getLowStockMedicines = asyncHandler(async (req, res) => {
 });
 
 
-export const getNearExpiryMedicines = asyncHandler(async (req, res) => {
-    const alerts = dashboardService.getNearExpiryMedicines();
+export const getExpiringBatches = asyncHandler(async (req, res) => {
+
+    const days = Number(req.query.days) || 30;
+
+    const alerts = dashboardService.getExpiringBatches(days);
+
     res.status(200).json({
         success: true,
         count: alerts.length,
         data: alerts
     });
+
+});
+
+export const getDashboardSummary = asyncHandler(async (req, res) => {
+
+    const summary =
+        dashboardService.getDashboardSummary();
+
+    res.status(200).json({
+        success: true,
+        data: summary
+    });
+
 });

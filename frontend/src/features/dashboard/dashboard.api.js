@@ -27,13 +27,13 @@ const dashboardApi = {
         return data.data;
     },
 
-    getLowStock: async () => {
+    getLowStockInventory: async () => {
         const { data } = await api.get("/dashboard/low-stock");
         return data.data;
     },
 
-    getNearExpiry: async () => {
-        const { data } = await api.get("/dashboard/near-expiry");
+    getExpiringBatches: async () => {
+        const { data } = await api.get("/dashboard/expiring-batches");
         return data.data;
     },
 
@@ -45,8 +45,12 @@ const dashboardApi = {
     getMonthlyPurchases: async () => {
         const { data } = await api.get("/dashboard/monthly-purchases");
         return data.data.purchaseTrend;
-    }
+    },
 
+    getSummary: async () => {
+        const { data } = await api.get("/dashboard/summary");
+        return data.data;
+    },
 };
 
 export default dashboardApi;

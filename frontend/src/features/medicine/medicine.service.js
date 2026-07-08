@@ -17,6 +17,12 @@ const medicineService = {
         return response.data.data;
     },
 
+    async getMedicineBatches(id) {
+        const response = await medicineApi.getMedicineBatches(id);
+
+        return response.data.data;
+    },
+
     async createMedicine(data) {
         const response = await medicineApi.createMedicine(data);
 
@@ -39,26 +45,8 @@ const medicineService = {
         return response.data.data;
     },
 
-    async adjustStock(id, quantity) {
-        const response = await medicineApi.adjustStock(id, quantity);
-
-        return response.data.data;
-    },
-
     async getLowStock() {
         const response = await medicineApi.getLowStock();
-
-        return response.data.data;
-    },
-
-    async getNearExpiry() {
-        const response = await medicineApi.getNearExpiry();
-
-        return response.data.data;
-    },
-
-    async get90Expiry() {
-        const response = await medicineApi.get90Expiry();
 
         return response.data.data;
     }

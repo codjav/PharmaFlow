@@ -10,53 +10,37 @@ import Input from "@/components/ui/Input";
 import DataTable from "@/components/tables/DataTable";
 
 import { medicineColumns } from "./medicine.columns";
+import { medicineBatchColumns } from "./medicineBatch.columns";
 import useMedicineMutation from "./useMedicineMutation";
 import useMedicines from "./useMedicines";
+import useMedicineBatches from "./useMedicineBatches";
 import categoryService from "../category/category.service";
 
 const FORM_DEFAULTS = {
   name: "",
-  batch_number: "",
   category_id: "",
   supplier_id: "",
   company: "",
   barcode: "",
-  mrp: "",
-  dr_price: "",
-  price: "",
-  quantity: "",
-  minimum_stock: 5,
-  expiry_date: "",
+  minimum_stock: 5
 };
 
 const getMedicineFormValues = (medicine) => ({
   name: medicine.name ?? "",
-  batch_number: medicine.batch_number ?? "",
   category_id: medicine.category_id ?? "",
   supplier_id: medicine.supplier_id ?? "",
   company: medicine.company ?? "",
   barcode: medicine.barcode ?? "",
-  mrp: medicine.mrp ?? "",
-  dr_price: medicine.dr_price ?? "",
-  price: medicine.price ?? "",
-  quantity: medicine.quantity ?? "",
-  minimum_stock: medicine.minimum_stock ?? 5,
-  expiry_date: medicine.expiry_date?.slice(0, 10) ?? "",
+  minimum_stock: medicine.minimum_stock ?? 5
 });
 
 const getMedicinePayload = (formData) => ({
   name: formData.name.trim(),
-  batch_number: formData.batch_number.trim(),
   category_id: formData.category_id ? Number(formData.category_id) : null,
   supplier_id: formData.supplier_id ? Number(formData.supplier_id) : null,
   company: formData.company.trim(),
   barcode: formData.barcode.trim() || null,
-  mrp: Number(formData.mrp),
-  dr_price: Number(formData.dr_price),
-  price: Number(formData.price),
-  quantity: Number(formData.quantity),
-  minimum_stock: Number(formData.minimum_stock),
-  expiry_date: formData.expiry_date,
+  minimum_stock: Number(formData.minimum_stock)
 });
 
 const MedicineFeature = () => {
@@ -67,13 +51,13 @@ const MedicineFeature = () => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [categoryName, setCategoryName] = useState("");
   const [creatingCategory, setCreatingCategory] = useState(false);
+  const [selectedMedicine, setSelectedMedicine] = useState(null);
 
+  const [openBatchDialog, setOpenBatchDialog] = useState(false);
   const [openCategoryDialog, setOpenCategoryDialog] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [deleteMedicine, setDeleteMedicine] = useState(null);
-  const [stockMedicine, setStockMedicine] = useState(null);
-  const [stockQuantity, setStockQuantity] = useState("");
 
   const limit = 10;
 
@@ -83,11 +67,14 @@ const MedicineFeature = () => {
     search: debouncedSearch,
   });
 
+  const { data: batches = [], isLoading: loadingBatches } = useMedicineBatches(
+    selectedMedicine?.id,
+  );
+
   const {
     createMedicine,
     updateMedicine,
     deleteMedicine: deleteMutation,
-    adjustStock,
   } = useMedicineMutation();
 
   const {
@@ -180,14 +167,14 @@ const MedicineFeature = () => {
     setDeleteMedicine(medicine);
   }, []);
 
-  const handleAdjustStock = useCallback((medicine) => {
-    setStockMedicine(medicine);
-    setStockQuantity("");
+  const handleViewBatches = useCallback((medicine) => {
+    setSelectedMedicine(medicine);
+    setOpenBatchDialog(true);
   }, []);
 
   const columns = useMemo(
-    () => medicineColumns(handleEdit, handleDelete, handleAdjustStock),
-    [handleAdjustStock, handleDelete, handleEdit],
+    () => medicineColumns(handleEdit, handleDelete, handleViewBatches),
+    [handleEdit, handleDelete, handleViewBatches],
   );
 
   const handleSearchChange = (event) => {
@@ -265,34 +252,6 @@ const MedicineFeature = () => {
       toast.error(
         error?.response?.data?.message || "Could not delete medicine",
       );
-    }
-  };
-
-  const confirmStockAdjustment = async () => {
-    if (!stockMedicine) return;
-
-    const quantity = Number(stockQuantity);
-
-    if (!Number.isInteger(quantity) || quantity === 0) {
-      toast.error("Enter a non-zero whole number");
-      return;
-    }
-
-    if (Number(stockMedicine.quantity) + quantity < 0) {
-      toast.error("This adjustment would make the stock negative");
-      return;
-    }
-
-    try {
-      await adjustStock.mutateAsync({
-        id: stockMedicine.id,
-        quantity,
-      });
-      toast.success("Stock updated successfully");
-      setStockMedicine(null);
-      setStockQuantity("");
-    } catch (error) {
-      toast.error(error?.response?.data?.message || "Could not update stock");
     }
   };
 
@@ -418,18 +377,6 @@ const MedicineFeature = () => {
                   />
 
                   <Input
-                    label="Batch Number"
-                    required
-                    error={errors.batch_number?.message}
-                    {...register("batch_number", {
-                      required: "Batch number is required",
-                      validate: (value) =>
-                        value.trim().length > 0 ||
-                        "Batch number cannot be blank",
-                    })}
-                  />
-
-                  <Input
                     label="Company"
                     required
                     error={errors.company?.message}
@@ -498,108 +445,18 @@ const MedicineFeature = () => {
               </section>
 
               <section>
-                <h3 className="mb-4 text-lg font-semibold">Pricing</h3>
+                <h3 className="mb-4 text-lg font-semibold">
+                  Inventory Settings
+                </h3>
 
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                  <Input
-                    label="MRP"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    required
-                    error={errors.mrp?.message}
-                    {...register("mrp", {
-                      required: "MRP is required",
-                      min: {
-                        value: 0.01,
-                        message: "MRP must be greater than zero",
-                      },
-                    })}
-                  />
-
-                  <Input
-                    label="Wholesale Price"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    required
-                    error={errors.dr_price?.message}
-                    {...register("dr_price", {
-                      required: "Wholesale price is required",
-                      min: {
-                        value: 0.01,
-                        message: "Wholesale price must be greater than zero",
-                      },
-                    })}
-                  />
-
-                  <Input
-                    label="Selling Price"
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    required
-                    error={errors.price?.message}
-                    {...register("price", {
-                      required: "Selling price is required",
-                      min: {
-                        value: 0.01,
-                        message: "Selling price must be greater than zero",
-                      },
-                    })}
-                  />
-                </div>
-              </section>
-
-              <section>
-                <h3 className="mb-4 text-lg font-semibold">Inventory</h3>
-
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                  <Input
-                    label="Stock"
-                    type="number"
-                    step="1"
-                    min="0"
-                    required
-                    error={errors.quantity?.message}
-                    {...register("quantity", {
-                      required: "Stock is required",
-                      min: {
-                        value: 0,
-                        message: "Stock cannot be negative",
-                      },
-                      validate: (value) =>
-                        Number.isInteger(Number(value)) ||
-                        "Stock must be a whole number",
-                    })}
-                  />
-
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <Input
                     label="Minimum Stock"
+
                     type="number"
-                    step="1"
-                    min="0"
-                    required
-                    error={errors.minimum_stock?.message}
+
                     {...register("minimum_stock", {
                       required: "Minimum stock is required",
-                      min: {
-                        value: 0,
-                        message: "Minimum stock cannot be negative",
-                      },
-                      validate: (value) =>
-                        Number.isInteger(Number(value)) ||
-                        "Minimum stock must be a whole number",
-                    })}
-                  />
-
-                  <Input
-                    label="Expiry Date"
-                    type="date"
-                    required
-                    error={errors.expiry_date?.message}
-                    {...register("expiry_date", {
-                      required: "Expiry date is required",
                     })}
                   />
                 </div>
@@ -688,6 +545,49 @@ const MedicineFeature = () => {
         </div>
       )}
 
+      {openBatchDialog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) {
+              setOpenBatchDialog(false);
+              setSelectedMedicine(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-6xl rounded-xl bg-white">
+            <div className="border-b p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold">Medicine Batches</h2>
+
+                  <p className="text-gray-500 mt-1">{selectedMedicine?.name}</p>
+                </div>
+
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setOpenBatchDialog(false);
+                    setSelectedMedicine(null);
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <DataTable
+                columns={medicineBatchColumns}
+                data={batches}
+                loading={loadingBatches}
+                emptyMessage="No batches available"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       {deleteMedicine && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -726,69 +626,6 @@ const MedicineFeature = () => {
                 onClick={confirmDelete}
               >
                 Delete
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {stockMedicine && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="stock-dialog-title"
-          onMouseDown={(event) => {
-            if (
-              event.target === event.currentTarget &&
-              !adjustStock.isPending
-            ) {
-              setStockMedicine(null);
-              setStockQuantity("");
-            }
-          }}
-        >
-          <div className="w-full max-w-md rounded-xl bg-white p-6">
-            <h2 id="stock-dialog-title" className="text-xl font-semibold">
-              Adjust Stock
-            </h2>
-            <p className="mb-1 mt-2 text-gray-600">{stockMedicine.name}</p>
-            <p className="mb-6 text-sm text-gray-500">
-              Current stock: {stockMedicine.quantity}. Use a positive number to
-              add stock or a negative number to remove it.
-            </p>
-
-            <Input
-              label="Adjustment quantity"
-              type="number"
-              step="1"
-              placeholder="For example, 10 or -5"
-              value={stockQuantity}
-              onChange={(event) => setStockQuantity(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && !adjustStock.isPending) {
-                  confirmStockAdjustment();
-                }
-              }}
-            />
-
-            <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <Button
-                variant="outline"
-                disabled={adjustStock.isPending}
-                onClick={() => {
-                  setStockMedicine(null);
-                  setStockQuantity("");
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                loading={adjustStock.isPending}
-                disabled={!stockQuantity}
-                onClick={confirmStockAdjustment}
-              >
-                Update Stock
               </Button>
             </div>
           </div>

@@ -1,6 +1,5 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import * as medicineService from "../services/medicine.service.js"
-import AppError from "../utils/AppError.js";
 
 // Get all 
 export const getAllMedicines = asyncHandler(
@@ -84,26 +83,6 @@ export const getLowStockMedicines = asyncHandler(
     }
 );
 
-// Stock Adjustment
-export const adjustStock = asyncHandler(async (req, res, next) => {
-    const { id } = req.params;
-    const quantity = Number(req.body.quantity);
-
-    if (!Number.isInteger(quantity) || quantity === 0) {
-        return next(new AppError(
-            "Please provide a non-zero whole-number adjustment quantity",
-            400
-        ));
-    }
-
-    const updatedMedicine = medicineService.adjustStock(Number(id), quantity);
-
-    res.status(200).json({
-        success: true,
-        message: "Stock updated successfully",
-        data: updatedMedicine
-    });
-});
 
 // Get paginated medicines
 export const getPaginatedMedicines = asyncHandler(async (req, res, next) => {
@@ -119,24 +98,19 @@ export const getPaginatedMedicines = asyncHandler(async (req, res, next) => {
     });
 });
 
-// Near expiry
-export const getNearExpiryMedicines = asyncHandler(async (req, res, next) => {
-    const medicines = medicineService.getNearExpiryMedicines();
+export const getMedicineBatches = asyncHandler(
+    async (req, res) => {
 
-    res.status(200).json({
-        success: true,
-        count: medicines.length,
-        data: medicines
-    });
-});
+        const { id } = req.params;
 
-// 90 expiry
-export const get90ExpiryMedicines = asyncHandler(async (req, res, next) => {
-    const medicines = medicineService.get90ExpiryMedicines();
+        const batches =
+            medicineService.getMedicineBatches(Number(id));
 
-    res.status(200).json({
-        success: true,
-        count: medicines.length,
-        data: medicines
-    });
-});
+        res.status(200).json({
+            success: true,
+            count: batches.length,
+            data: batches
+        });
+
+    }
+);

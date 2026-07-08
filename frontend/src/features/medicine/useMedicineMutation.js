@@ -52,24 +52,6 @@ const useMedicineMutation = () => {
 
     });
 
-    const adjustStock = useMutation({
-
-        mutationFn: ({ id, quantity }) =>
-            medicineService.adjustStock(
-                id,
-                quantity
-            ),
-
-        onSuccess: () => {
-
-            queryClient.invalidateQueries({
-                queryKey: ["medicines"],
-            });
-
-        },
-
-    });
-
     return {
 
         createMedicine,
@@ -77,8 +59,6 @@ const useMedicineMutation = () => {
         updateMedicine,
 
         deleteMedicine,
-
-        adjustStock,
 
     };
 

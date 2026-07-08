@@ -1,4 +1,4 @@
-import express from 'express';
+import express from "express";
 import {
     getAllPurchases,
     getPurchaseById,
@@ -11,25 +11,30 @@ import {
     getPaginatedPurchases,
     updatePurchasePayment,
     markPurchasePaid,
-    getPurchaseReport
-} from '../controllers/purchase.controller.js';
+    getPurchaseReport,
+    getPurchaseItems
+} from "../controllers/purchase.controller.js";
 
 const router = express.Router();
 
-router.get('/stats', getPurchaseStats);
-router.get('/report', getPurchaseReport);
-router.get('/recent', getRecentPurchases);
-router.get('/search', searchPurchases);
+router.get("/stats", getPurchaseStats);
+router.get("/report", getPurchaseReport);
+router.get("/recent", getRecentPurchases);
+router.get("/search", searchPurchases);
+
+router.get("/supplier/:supplierId", getSupplierPurchases);
+
+// ⭐ NEW
+router.get("/:id/items", getPurchaseItems);
+
 router.patch("/:id/payment", updatePurchasePayment);
 router.patch("/:id/mark-paid", markPurchasePaid);
 
-router.get('/supplier/:supplierId', getSupplierPurchases);
-
-router.route('/')
+router.route("/")
     .get(getPaginatedPurchases)
     .post(createPurchase);
 
-router.route('/:id')
+router.route("/:id")
     .get(getPurchaseById)
     .delete(deletePurchase);
 

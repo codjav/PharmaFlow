@@ -8,26 +8,37 @@ export const getAllMedicines = () => {
         SELECT
             m.*,
             c.name AS category_name,
-            s.name AS supplier_name
-        
+            s.name AS supplier_name,
+            COALESCE(SUM(b.quantity), 0) AS total_stock
         FROM medicines m
-
         LEFT JOIN categories c
             ON m.category_id = c.id
-
-        LEFT JOIN suppliers s 
+        LEFT JOIN suppliers s
             ON m.supplier_id = s.id
-
-        ORDER BY m.name
+        LEFT JOIN medicine_batches b
+            ON b.medicine_id = m.id
+        GROUP BY m.id
+        ORDER BY m.name;
     `).all();
 };
 
 // GET medicine by id
 export const getMedicineById = (id) => {
     const medicine = db.prepare(`
-        SELECT * 
-        FROM medicines
-        WHERE id = ?
+        SELECT
+            m.*,
+            c.name AS category_name,
+            s.name AS supplier_name,
+            COALESCE(SUM(b.quantity), 0) AS total_stock
+        FROM medicines m
+        LEFT JOIN categories c
+            ON m.category_id = c.id
+        LEFT JOIN suppliers s
+            ON m.supplier_id = s.id
+        LEFT JOIN medicine_batches b
+            ON b.medicine_id = m.id
+        WHERE m.id = ?
+        GROUP BY m.id;
     `).get(id);
 
     if(!medicine) {
@@ -35,6 +46,24 @@ export const getMedicineById = (id) => {
     }
 
     return medicine;
+};
+
+export const getMedicineBatches = (medicineId) => {
+    return db.prepare(`
+        SELECT
+            id,
+            batch_number,
+            expiry_date,
+            mrp,
+            purchase_price,
+            dr_price,
+            selling_price,
+            quantity,
+            status
+        FROM medicine_batches
+        WHERE medicine_id = ?
+        ORDER BY expiry_date ASC
+    `).all(medicineId);
 };
 
 // CREATE new medicine
@@ -46,17 +75,11 @@ export const createMedicine = (medicineData) => {
 
     const {
         name,
-        batch_number,
         category_id,
         company,
         supplier_id,
         barcode,
-        mrp,
-        dr_price,
-        price,
-        quantity,
-        minimum_stock,
-        expiry_date
+        minimum_stock
     } = medicineData;
 
     const existingBarcode = db.prepare(`
@@ -72,34 +95,20 @@ export const createMedicine = (medicineData) => {
     const result = db.prepare(`
         INSERT INTO medicines(
             name,
-            batch_number,
             category_id,
             company,
             supplier_id,
             barcode,
-            mrp,
-            dr_price,
-            price,
-            quantity,
-            minimum_stock,
-            expiry_date
+            minimum_stock
         )
-        VALUES (
-            ?,?,?,?,?,?,?,?,?,?,?,?
-        )
+        VALUES (?,?,?,?,?,?)
     `).run(
         name,
-        batch_number,
         category_id,
         company,
         supplier_id,
         barcode,
-        mrp,
-        dr_price,
-        price,
-        quantity,
-        minimum_stock,
-        expiry_date
+        minimum_stock
     );
 
     return getMedicineById(
@@ -113,48 +122,30 @@ export const updateMedicine = (id, medicineData) => {
 
     const {
         name,
-        batch_number,
         category_id,
         company,
         supplier_id,
         barcode,
-        mrp,
-        dr_price,
-        price,
-        quantity,
-        minimum_stock,
-        expiry_date
+        minimum_stock
     } = medicineData;
 
     db.prepare(`
         UPDATE medicines
-        SET 
+        SET
             name = ?,
-            batch_number = ?,
             category_id = ?,
             company = ?,
             supplier_id = ?,
             barcode = ?,
-            mrp = ?,
-            dr_price = ?,
-            price = ?,
-            quantity = ?,
-            minimum_stock = ?,
-            expiry_date = ?
-        WHERE id=?
+            minimum_stock = ?
+        WHERE id = ?
     `).run(
         name,
-        batch_number,
         category_id,
         company,
         supplier_id,
         barcode,
-        mrp,
-        dr_price,
-        price,
-        quantity,
         minimum_stock,
-        expiry_date,
         id
     );
 
@@ -172,30 +163,28 @@ export const deleteMedicine = (id) => {
 
 // Search medicine
 export const searchMedicines = (keyword = "") => {
-    // if(!keyword.trim()) {
-    //     return db.prepare(`
-    //         SELECT * 
-    //         FROM medicines
-    //     `).all();
-    // }
 
     const searchPattern = `%${keyword}%`;
 
     return db.prepare(`
-        SELECT 
+        SELECT
             m.*,
             c.name AS category_name,
-            s.name AS supplier_name
+            s.name AS supplier_name,
+            COALESCE(SUM(b.quantity),0) AS total_stock
         FROM medicines m
         LEFT JOIN categories c
             ON m.category_id = c.id
         LEFT JOIN suppliers s
             ON m.supplier_id = s.id
-        WHERE 
+        LEFT JOIN medicine_batches b
+            ON b.medicine_id = m.id
+        WHERE
             m.name LIKE ?
             OR m.company LIKE ?
             OR m.barcode LIKE ?
             OR c.name LIKE ?
+        GROUP BY m.id
     `).all(
         searchPattern,
         searchPattern,
@@ -207,55 +196,20 @@ export const searchMedicines = (keyword = "") => {
 // Low stock medicines
 export const getLowStockMedicines = () => {
     return db.prepare(`
-        SELECT *
-        FROM medicines 
-        WHERE quantity <= minimum_stock
+        SELECT
+            m.id,
+            m.name,
+            m.minimum_stock,
+            COALESCE(SUM(b.quantity),0) AS total_stock
+        FROM medicines m
+        LEFT JOIN medicine_batches b
+            ON b.medicine_id = m.id
+        GROUP BY m.id
+        HAVING total_stock <= m.minimum_stock
+        ORDER BY total_stock
     `).all();
 };
 
-// Near expiry medicines
-export const getNearExpiryMedicines = () => {
-    return db.prepare(`
-        SELECT *
-        FROM medicines 
-        WHERE 
-        julianday(expiry_date)
-        - julianday('now')
-        <=60
-    `).all();
-}
-
-// 90 days to expire medicines
-export const get90ExpiryMedicines = () => {
-    return db.prepare(`
-        SELECT *
-        FROM medicines 
-        WHERE 
-        julianday(expiry_date)
-        - julianday('now')
-        <=90
-    `).all();
-}
-
-// Stock Adjustment 
-export const adjustStock = (id, quantity) => {
-    const medicine = getMedicineById(id);
-
-    if (medicine.quantity + quantity < 0) {
-        throw new AppError(
-            "Stock adjustment cannot make the quantity negative",
-            400
-        );
-    }
-
-    db.prepare(`
-        UPDATE medicines
-        SET quantity = quantity + ?
-        WHERE id = ?
-    `).run(quantity, id);
-
-    return getMedicineById(id);
-}
 
 // Pagination
 export const getPaginatedMedicines = (
@@ -267,15 +221,19 @@ export const getPaginatedMedicines = (
     const offset = (pageNum - 1) * limitNum;
 
     const medicines = db.prepare(`
-        SELECT 
+        SELECT
             m.*,
             c.name AS category_name,
-            s.name AS supplier_name
+            s.name AS supplier_name,
+            COALESCE(SUM(b.quantity),0) AS total_stock
         FROM medicines m
-        LEFT JOIN categories c 
+        LEFT JOIN categories c
             ON m.category_id = c.id
-        LEFT JOIN suppliers s 
+        LEFT JOIN suppliers s
             ON m.supplier_id = s.id
+        LEFT JOIN medicine_batches b
+            ON b.medicine_id = m.id
+        GROUP BY m.id
         ORDER BY m.id DESC
         LIMIT ?
         OFFSET ?
