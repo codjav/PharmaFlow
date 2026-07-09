@@ -7,12 +7,14 @@ import {
     getCustomerDueAlerts,
     getSupplierDueAlerts,
     getAlertSummary,
-    get90ExpiryMedicines
+    get90ExpiryMedicines,
+    getOutOfStockMedicines
 } from "../controllers/alert.controller.js";
 
 const router = express.Router();
 
 router.get("/low-stock", getLowStockMedicines);
+router.get("/out-of-stock", getOutOfStockMedicines);
 router.get("/90-expiry", get90ExpiryMedicines);
 router.get("/near-expiry", getNearExpiryMedicines);
 router.get("/expired", getExpiredMedicines);

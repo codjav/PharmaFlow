@@ -4,14 +4,21 @@ import db from "../config/db.js";
 export const getLowStockMedicines = () => {
     return db.prepare(`
         SELECT
-            id,
-            name,
-            quantity,
-            minimum_stock,
-            company
-        FROM medicines
-        WHERE quantity <= minimum_stock
-        ORDER BY quantity ASC
+            m.id,
+            m.name,
+            m.company,
+            m.minimum_stock,
+            COALESCE(SUM(mb.quantity),0) AS quantity
+        FROM medicines m
+        LEFT JOIN medicine_batches mb
+        ON mb.medicine_id = m.id
+        GROUP BY
+            m.id,
+            m.name,
+            m.company,
+            m.minimum_stock
+        HAVING quantity <= m.minimum_stock
+        ORDER BY quantity ASC;
     `).all();
 };
 
@@ -19,21 +26,22 @@ export const getLowStockMedicines = () => {
 export const getNearExpiryMedicines = () => {
     return db.prepare(`
         SELECT
-            id,
-            name,
-            company,
-            quantity,
-            expiry_date
-        FROM medicines
+            mb.id,
+            m.name,
+            m.company,
+            mb.batch_number,
+            mb.quantity,
+            mb.expiry_date
+        FROM medicine_batches mb
+        JOIN medicines m
+        ON mb.medicine_id = m.id
         WHERE
-            julianday(expiry_date)
-            -
-            julianday('now')
-            <= 30
+            DATE(mb.expiry_date) >= DATE('now')
         AND
-            julianday(expiry_date)
-            >= 0
-        ORDER BY expiry_date
+            DATE(mb.expiry_date) <= DATE('now','+30 day')
+        AND
+            mb.quantity > 0
+        ORDER BY mb.expiry_date;
     `).all();
 };
 
@@ -41,21 +49,22 @@ export const getNearExpiryMedicines = () => {
 export const get90ExpiryMedicines = () => {
     return db.prepare(`
         SELECT
-            id,
-            name,
-            company,
-            quantity,
-            expiry_date
-        FROM medicines
+            mb.id,
+            m.name,
+            m.company,
+            mb.batch_number,
+            mb.quantity,
+            mb.expiry_date
+        FROM medicine_batches mb
+        JOIN medicines m
+        ON mb.medicine_id = m.id
         WHERE
-            julianday(expiry_date)
-            -
-            julianday('now')
-            <= 90
+            DATE(mb.expiry_date) > DATE('now','+30 day')
         AND
-            julianday(expiry_date)
-            >= 30
-        ORDER BY expiry_date
+            DATE(mb.expiry_date) <= DATE('now','+90 day')
+        AND
+            mb.quantity > 0
+        ORDER BY mb.expiry_date;
     `).all();
 };
 
@@ -63,15 +72,20 @@ export const get90ExpiryMedicines = () => {
 export const getExpiredMedicines = () => {
     return db.prepare(`
         SELECT
-            id,
-            name,
-            company,
-            quantity,
-            expiry_date
-        FROM medicines
-        WHERE DATE(expiry_date)
-        < DATE('now')
-        ORDER BY expiry_date
+            mb.id,
+            m.name,
+            m.company,
+            mb.batch_number,
+            mb.quantity,
+            mb.expiry_date
+        FROM medicine_batches mb
+        JOIN medicines m
+        ON mb.medicine_id = m.id
+        WHERE
+            DATE(mb.expiry_date) < DATE('now')
+        AND
+            mb.quantity > 0
+        ORDER BY mb.expiry_date;
     `).all();
 };
 
@@ -103,32 +117,78 @@ export const getSupplierDueAlerts = () => {
     `).all();
 };
 
+export const getOutOfStockMedicines = () => {
+    return db.prepare(`
+        SELECT
+            m.id,
+            m.name,
+            m.company,
+            m.minimum_stock,
+            COALESCE(SUM(mb.quantity),0) AS quantity
+        FROM medicines m
+        LEFT JOIN medicine_batches mb
+            ON m.id = mb.medicine_id
+        GROUP BY
+            m.id,
+            m.name,
+            m.company,
+            m.minimum_stock
+        HAVING quantity = 0
+        ORDER BY m.name
+    `).all();
+};
+
 // GET /api/alerts/summary
 export const getAlertSummary = () => {
     const lowStock = db.prepare(`
         SELECT COUNT(*) total
-        FROM medicines
-        WHERE quantity <= minimum_stock
+        FROM (
+            SELECT
+                m.id
+            FROM medicines m
+            LEFT JOIN medicine_batches mb
+            ON mb.medicine_id = m.id
+            GROUP BY
+                m.id,
+                m.minimum_stock
+            HAVING
+                COALESCE(SUM(mb.quantity),0)
+                <=
+                m.minimum_stock
+        )
     `).get();
 
     const nearExpiry = db.prepare(`
         SELECT COUNT(*) total
-        FROM medicines
+        FROM medicine_batches
         WHERE
-            julianday(expiry_date)
-            -
-            julianday('now')
-            <= 30
+            DATE(expiry_date)>=DATE('now')
         AND
-            julianday(expiry_date)
-            >= 0
+            DATE(expiry_date)<=DATE('now','+30 day')
+        AND
+            quantity>0
     `).get();
+
+    const outOfStock = db.prepare(`
+    SELECT COUNT(*) total
+    FROM (
+        SELECT
+            m.id
+        FROM medicines m
+        LEFT JOIN medicine_batches mb
+            ON m.id = mb.medicine_id
+        GROUP BY m.id
+        HAVING COALESCE(SUM(mb.quantity),0) = 0
+    )
+`).get();
 
     const expired = db.prepare(`
         SELECT COUNT(*) total
-        FROM medicines
-        WHERE DATE(expiry_date)
-        < DATE('now')
+        FROM medicine_batches
+        WHERE
+            DATE(expiry_date)<DATE('now')
+        AND
+            quantity>0
     `).get();
 
     const customerDue = db.prepare(`

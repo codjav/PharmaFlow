@@ -46,6 +46,16 @@ export const getExpiredMedicines = asyncHandler(async (req, res, next) => {
     });
 });
 
+export const getOutOfStockMedicines = asyncHandler(async (req, res) => {
+    const records = alertService.getOutOfStockMedicines();
+
+    res.status(200).json({
+        success: true,
+        count: records.length,
+        data: records
+    });
+});
+
 // GET /api/alerts/customer-dues
 export const getCustomerDueAlerts = asyncHandler(async (req, res, next) => {
     const records = alertService.getCustomerDueAlerts();
