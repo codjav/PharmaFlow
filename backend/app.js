@@ -29,7 +29,7 @@ app.use("/api/suppliers", supplierRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/api/sales", salesRoutes);
-app.use("/api/alert", alertRoutes);
+app.use("/api/alerts", alertRoutes);
 app.use("/api/report", reportRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/settings", settingsRoutes);

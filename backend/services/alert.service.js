@@ -169,6 +169,17 @@ export const getAlertSummary = () => {
             quantity>0
     `).get();
 
+    const expiry90 = db.prepare(`
+    SELECT COUNT(*) total
+    FROM medicine_batches
+    WHERE
+        DATE(expiry_date) > DATE('now','+30 day')
+    AND
+        DATE(expiry_date) <= DATE('now','+90 day')
+    AND
+        quantity > 0
+`).get();
+
     const outOfStock = db.prepare(`
     SELECT COUNT(*) total
     FROM (
@@ -203,16 +214,13 @@ export const getAlertSummary = () => {
         WHERE pending_due > 0
     `).get();
 
-    return {
-        lowStockCount:
-            lowStock.total,
-        nearExpiryCount:
-            nearExpiry.total,
-        expiredCount:
-            expired.total,
-        customerDueCount:
-            customerDue.total,
-        supplierDueCount:
-            supplierDue.total
-    };
+        return {
+    lowStockCount: lowStock.total,
+    outOfStockCount: outOfStock.total,
+    nearExpiryCount: nearExpiry.total,
+    expiry90Count: expiry90.total,
+    expiredCount: expired.total,
+    customerDueCount: customerDue.total,
+    supplierDueCount: supplierDue.total,
+};
 };
