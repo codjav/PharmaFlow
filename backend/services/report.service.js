@@ -81,14 +81,21 @@ export const getSupplierReport = () => {
 export const getMedicineReport = () => {
     return db.prepare(`
         SELECT
-            name,
-            company,
-            quantity,
-            minimum_stock,
-            price,
-            expiry_date
-        FROM medicines
-        ORDER BY name
+            m.name,
+            m.company,
+            COALESCE(SUM(mb.quantity), 0) AS quantity,
+            m.minimum_stock,
+            MIN(mb.selling_price) AS price,
+            MIN(mb.expiry_date) AS expiry_date
+        FROM medicines m
+        LEFT JOIN medicine_batches mb
+            ON m.id = mb.medicine_id
+        GROUP BY
+            m.id,
+            m.name,
+            m.company,
+            m.minimum_stock
+        ORDER BY m.name;
     `).all();
 };
 
@@ -97,22 +104,24 @@ export const getProfitReport = () => {
     return db.prepare(`
         SELECT
             m.name,
-            SUM(si.quantity)
-            quantitySold,
+            SUM(si.quantity) AS quantitySold,
             SUM(
                 (
-                    si.unit_price
-                    -
-                    m.price
-                )
-                *
-                si.quantity
-            ) profit
+                    mb.selling_price -
+                    mb.purchase_price
+                ) * si.quantity
+            ) AS profit
         FROM sale_items si
+
         JOIN medicines m
-        ON si.medicine_id = m.id
+            ON si.medicine_id = m.id
+
+        JOIN medicine_batches mb
+            ON si.batch_id = mb.id
+
         GROUP BY m.id
-        ORDER BY profit DESC
+
+        ORDER BY profit DESC;
     `).all();
 };
 
@@ -146,7 +155,7 @@ export const getDashboardReport = () => {
         SELECT COUNT(*) total
         FROM medicines
     `).get();
-    
+
     return {
         totalSales:
             sales.total,

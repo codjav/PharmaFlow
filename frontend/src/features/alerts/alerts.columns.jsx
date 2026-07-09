@@ -1,7 +1,4 @@
-import Button from "@/components/ui/Button";
-import { Eye } from "lucide-react";
-
-const alertsColumns = ({ type, onView }) => {
+const alertsColumns = ({ type }) => {
   switch (type) {
     case "LOW_STOCK":
     case "OUT_OF_STOCK":
