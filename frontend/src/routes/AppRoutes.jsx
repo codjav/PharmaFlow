@@ -9,6 +9,7 @@ import MedicinePage from "@/pages/Medicine/MedicinePage";
 import SupplierPage from "@/pages/Supplier/SupplierPage";
 import CustomerPage from "@/pages/Customer/CustomerPage";
 import PurchasePage from "@/pages/Purchase/PurchasePage";
+import SalesPage from "@/pages/Sales/SalesPage";
 
 
 function AppRoutes() {
@@ -49,6 +50,11 @@ function AppRoutes() {
                 <Route
                     path="/purchase"
                     element={<PurchasePage />}
+                />
+
+                <Route
+                    path="/sales"
+                    element={<SalesPage />}
                 />
             </Route>
 

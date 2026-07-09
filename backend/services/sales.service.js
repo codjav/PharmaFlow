@@ -1,59 +1,155 @@
 import db from "../config/db.js";
 import AppError from "../utils/AppError.js";
-import {validateSales} from "../validators/sales.validator.js";
+import { validateSales } from "../validators/sales.validator.js";
 
 // GET     /api/sales
 // Get all sales
+
 export const getSales = () => {
-    return db.prepare(`
+
+    const sales = db.prepare(`
         SELECT
             s.*,
-            c.name customer_name,
+            c.name AS customer_name,
             c.phone
         FROM sales s
         LEFT JOIN customers c
-        ON s.customer_id = c.id
-        ORDER BY sale_date DESC
+            ON s.customer_id = c.id
+        ORDER BY s.sale_date DESC
     `).all();
 
+    return {
+        sales,
+        pagination: null,
+    };
 };
+
 
 
 // GET     /api/sales/:id
 // Get sale by id
 export const getSaleById = (id) => {
+
     const sale = db.prepare(`
-        SELECT 
+        SELECT
             s.*,
-            c.name customer_name,
+            c.name AS customer_name,
             c.phone
         FROM sales s
         LEFT JOIN customers c
-        ON s.customer_id = c.id
+            ON s.customer_id = c.id
         WHERE s.id = ?
     `).get(id);
 
-    if(!sale) {
+    if (!sale) {
         throw new AppError(
             "Sale not found",
             404
         );
     }
 
-    const item = db.prepare(`
+    const items = db.prepare(`
         SELECT
-            si.*,
-            m.name medicine_name 
+            si.id,
+            si.sale_id,
+            si.medicine_id,
+            si.batch_id,
+            mb.expiry_date,
+mb.batch_number,
+            si.quantity,
+            si.unit_price,
+            si.discount,
+            si.total,
+
+            m.name AS medicine_name,
+
+            mb.id AS batch_id,
+            mb.purchase_price,
+            mb.dr_price,
+            mb.selling_price
+
         FROM sale_items si
-        JOIN medicines m
-        ON si.medicine_id = m.id
+
+        INNER JOIN medicines m
+            ON si.medicine_id = m.id
+
+        LEFT JOIN medicine_batches mb
+            ON mb.id = si.batch_id
+
         WHERE si.sale_id = ?
+
+        ORDER BY si.id
     `).all(id);
 
     return {
         ...sale,
-        item
+        items,
     };
+
+};
+
+// GET /api/sales/:id/items
+export const getSaleItems = (saleId) => {
+
+    return db.prepare(`
+        SELECT
+            si.id,
+            si.sale_id,
+            si.medicine_id,
+            si.batch_id,
+            mb.expiry_date,
+mb.batch_number,
+            si.quantity,
+            si.unit_price,
+            si.discount,
+            si.total,
+
+            m.name AS medicine_name,
+
+            mb.id AS batch_id,
+            mb.purchase_price,
+            mb.dr_price,
+            mb.selling_price
+
+        FROM sale_items si
+
+        INNER JOIN medicines m
+            ON si.medicine_id = m.id
+
+        LEFT JOIN medicine_batches mb
+            ON mb.id = si.batch_id
+
+        WHERE si.sale_id = ?
+
+        ORDER BY si.id
+    `).all(saleId);
+
+};
+
+const generateInvoiceNumber = () => {
+    const today = new Date();
+
+    const date =
+        today.getFullYear().toString() +
+        String(today.getMonth() + 1).padStart(2, "0") +
+        String(today.getDate()).padStart(2, "0");
+
+    const lastSale = db.prepare(`
+        SELECT invoice_number
+        FROM sales
+        WHERE invoice_number LIKE ?
+        ORDER BY id DESC
+        LIMIT 1
+    `).get(`INV-${date}-%`);
+
+    let sequence = 1;
+
+    if (lastSale) {
+        const parts = lastSale.invoice_number.split("-");
+        sequence = Number(parts[2]) + 1;
+    }
+
+    return `INV-${date}-${String(sequence).padStart(4, "0")}`;
 };
 
 
@@ -63,79 +159,79 @@ export const createSale = (saleData) => {
     validateSales(saleData);
 
     const transaction = db.transaction(() => {
+
         const {
-            invoice_number,
-            customer_name,
-            customer_phone,
+            customer_id,
             payment_type = "CASH",
             sale_type = "RETAIL",
             discount = 0,
             paid_amount = 0,
-            items
+            items,
         } = saleData;
 
-        let customer = db.prepare(`
-            SELECT * 
-            FROM customers 
-            WHERE 
-                name = ?
-                OR phone = ?
-        `).get(
-            customer_name,
-            customer_phone
-        );
+        const invoice_number = generateInvoiceNumber();
 
-        if(!customer) {
-            const result = db.prepare(`
-                INSERT INTO customers(
-                    name,
-                    phone
-                )
-                VALUES (?,?)
-            `).run(
-                customer_name,
-                customer_phone
-            );
+        // Check customer
+        const customer = db.prepare(`
+            SELECT *
+            FROM customers
+            WHERE id = ?
+        `).get(customer_id);
 
-            customer = db.prepare(`
-                SELECT *
-                FROM customers
-                WHERE id=?
-            `).get(
-                result.lastInsertRowid
+        if (!customer) {
+            throw new AppError(
+                "Customer not found",
+                404
             );
         }
 
         let subtotal = 0;
         const saleItems = [];
+
+        // Validate all medicines & batches
         items.forEach(item => {
+
             const medicine = db.prepare(`
                 SELECT *
                 FROM medicines
                 WHERE id = ?
             `).get(item.medicine_id);
 
-            if(!medicine) {
+            if (!medicine) {
                 throw new AppError(
                     "Medicine not found",
                     404
                 );
             }
 
-            if(medicine.quantity < item.quantity) {
+            const batch = db.prepare(`
+                SELECT *
+                FROM medicine_batches
+                WHERE id = ?
+                AND medicine_id = ?
+            `).get(
+                item.batch_id,
+                item.medicine_id
+            );
+
+            if (!batch) {
                 throw new AppError(
-                    `${medicine.name} out of stock`,
+                    `Batch not found for ${medicine.name}`,
+                    404
+                );
+            }
+
+            if (batch.quantity < item.quantity) {
+                throw new AppError(
+                    `${medicine.name} (${batch.batch_number}) has only ${batch.quantity} in stock.`,
                     400
                 );
             }
 
-            let unitPrice;
-            if(sale_type === "WHOLESALE") {
-                unitPrice = medicine.dr_price;
-            }
-            else {
-                unitPrice = medicine.mrp;
-            }
+            const unitPrice =
+                sale_type === "WHOLESALE"
+                    ? batch.dr_price
+                    : batch.selling_price;
 
             const total = unitPrice * item.quantity;
 
@@ -143,22 +239,30 @@ export const createSale = (saleData) => {
 
             saleItems.push({
                 medicine,
+                batch,
                 quantity: item.quantity,
                 unitPrice,
-                total
+                total,
             });
+
         });
 
-        // GST Included
-        const gst = 18;
-        const totalAmount = subtotal - discount;
-        const dueAmount = totalAmount - paid_amount;
+        const totalAmount = Math.max(
+            0,
+            subtotal - discount
+        );
 
-        const status = 
-            dueAmount > 0 
-                ?"PARTIAL"
+        const dueAmount = Math.max(
+            0,
+            totalAmount - paid_amount
+        );
+
+        const status =
+            dueAmount > 0
+                ? "PARTIAL"
                 : "PAID";
 
+        // Create Sale
         const saleResult = db.prepare(`
             INSERT INTO sales (
                 invoice_number,
@@ -167,13 +271,12 @@ export const createSale = (saleData) => {
                 payment_type,
                 subtotal,
                 discount,
-                gst,
                 total_amount,
                 paid_amount,
                 due_amount,
                 status
             )
-            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
         `).run(
             invoice_number,
             customer.id,
@@ -181,7 +284,6 @@ export const createSale = (saleData) => {
             payment_type,
             subtotal,
             discount,
-            gst,
             totalAmount,
             paid_amount,
             dueAmount,
@@ -190,70 +292,75 @@ export const createSale = (saleData) => {
 
         const saleId = saleResult.lastInsertRowid;
 
+        // Save Sale Items & Update Stock
         saleItems.forEach(item => {
+
             db.prepare(`
-                INSERT INTO sale_items(
+                INSERT INTO sale_items (
                     sale_id,
                     medicine_id,
-                    batch_number,
-                    expiry_date,
+                    batch_id,
                     quantity,
                     unit_price,
+                    discount,
                     total
                 )
                 VALUES (?,?,?,?,?,?,?)
             `).run(
                 saleId,
                 item.medicine.id,
-                item.medicine.batch_number,
-                item.medicine.expiry_date,
+                item.batch.id,
                 item.quantity,
                 item.unitPrice,
+                0,
                 item.total
             );
 
-            // Stock Reduce
+            // Reduce stock from selected batch
             db.prepare(`
-                UPDATE medicines
-                SET quantity = quantity-?
+                UPDATE medicine_batches
+                SET quantity = quantity - ?
                 WHERE id = ?
             `).run(
                 item.quantity,
-                item.medicine.id
+                item.batch.id
             );
 
-            // Stock Movements
+            // Stock movement
             db.prepare(`
                 INSERT INTO stock_movements(
                     medicine_id,
+                    batch_id,
                     movement_type,
                     quantity,
                     reference_id
                 )
-                VALUES (?,?,?,?)
+                VALUES (?,?,?,?,?)
             `).run(
                 item.medicine.id,
+                item.batch.id,
                 "SALE",
                 item.quantity,
                 saleId
             );
+
         });
 
-        // Customer update
+        // Update customer balance
         db.prepare(`
             UPDATE customers
-            SET 
+            SET
                 total_purchase = total_purchase + ?,
                 pending_due = pending_due + ?
-            
             WHERE id = ?
-        `).run (
+        `).run(
             totalAmount,
             dueAmount,
             customer.id
         );
 
         return saleId;
+
     });
 
     const saleId = transaction();
@@ -268,37 +375,46 @@ export const deleteSale = (saleId) => {
     const sale = getSaleById(saleId);
 
     const transaction = db.transaction(() => {
-        // Restock
+        // Restore stock back to the original batches
         sale.items.forEach((item) => {
             db.prepare(`
-                UPDATE medicines 
+                UPDATE medicine_batches
                 SET quantity = quantity + ?
                 WHERE id = ?
             `).run(
                 item.quantity,
-                item.medicine_id
+                item.batch_id
             );
 
             db.prepare(`
                 INSERT INTO stock_movements(
                     medicine_id,
+                    batch_id,
                     movement_type,
                     quantity,
                     reference_id
                 )
-                VALUES (?,?,?,?)
+                VALUES (?,?,?,?,?)
             `).run(
                 item.medicine_id,
-                "SALE_DELETE",
+                item.batch_id,
+                'SALE_DELETE',
                 item.quantity,
                 saleId
             );
         });
 
-        // Update Customers
+        // Remove original SALE stock movements
         db.prepare(`
-            UPDATE customers 
-            SET 
+            DELETE FROM stock_movements
+            WHERE reference_id = ?
+              AND movement_type = 'SALE'
+        `).run(saleId);
+
+        // Update customer totals
+        db.prepare(`
+            UPDATE customers
+            SET
                 total_purchase = total_purchase - ?,
                 pending_due = pending_due - ?
             WHERE id = ?
@@ -310,12 +426,12 @@ export const deleteSale = (saleId) => {
 
         db.prepare(`
             DELETE FROM sale_items
-            WHERE sale_id =?
+            WHERE sale_id = ?
         `).run(saleId);
 
         db.prepare(`
             DELETE FROM sales
-            WHERE id=?
+            WHERE id = ?
         `).run(saleId);
     });
 
@@ -325,7 +441,7 @@ export const deleteSale = (saleId) => {
 
 // Get paginated sales
 export const getPaginatedSales = (page = 1, limit = 10) => {
-    const offset = (page-1) * limit;
+    const offset = (page - 1) * limit;
 
     const sales = db.prepare(`
         SELECT 
@@ -449,7 +565,7 @@ export const updateSalePayment = (saleId, amount) => {
         WHERE id = ?
     `).get(saleId);
 
-    if(!sale) {
+    if (!sale) {
         throw new AppError(
             "Sale not found",
             404
@@ -459,11 +575,11 @@ export const updateSalePayment = (saleId, amount) => {
     const newPaidAmount = sale.paid_amount + amount;
     const newDueAmount = sale.total_amount - newPaidAmount;
 
-    const status = 
+    const status =
         newDueAmount > 0
             ? "PARTIAL"
             : "PAID";
-    
+
     db.prepare(`
         UPDATE sales
         SET 
@@ -499,7 +615,7 @@ export const markSalePaid = (saleId) => {
         WHERE id=?
     `).get(saleId);
 
-    if(!sale) {
+    if (!sale) {
         throw new AppError(
             "Sale not found",
             404

@@ -1,7 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import medicineService from "./medicine.service";
 
-const useMedicines = ({ page, limit, search }) => {
+const useMedicines = ({
+  page = 1,
+  limit = 1000,
+  search = "",
+} = {}) => {
   return useQuery({
     queryKey: ["medicines", page, limit, search],
 

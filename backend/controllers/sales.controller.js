@@ -30,6 +30,21 @@ export const getSaleById = asyncHandler(
     }
 );
 
+// Get sale items
+export const getSaleItems = asyncHandler(
+    async (req, res) => {
+        const { id } = req.params;
+
+        const items = salesService.getSaleItems(Number(id));
+
+        res.status(200).json({
+            success: true,
+            count: items.length,
+            data: items,
+        });
+    }
+);
+
 // Create sale
 export const createSale = asyncHandler(
     async (req, res, next) => {
@@ -60,7 +75,7 @@ export const deleteSale = asyncHandler(
 export const getPaginatedSales = asyncHandler(
     async (req, res) => {
         const page = Number(req.query.page) || 1;
-        const limit = NUmber(req.query.limit) || 10;
+        const limit = Number(req.query.limit) || 10;
 
         const sale = salesService.getPaginatedSales(page, limit);
 
@@ -76,7 +91,7 @@ export const getPaginatedSales = asyncHandler(
 export const searchSales = asyncHandler(
     async (req, res) => {
         const { keyword = "" } = req.query;
-        const records = saleService.searchSales(keyword);
+        const records = salesService.searchSales(keyword);
 
         res.status(200).json({
             success: true,
@@ -89,7 +104,7 @@ export const searchSales = asyncHandler(
 // Sales Stats
 export const getSalesStats = asyncHandler(
     async (req, res) => {
-        const stats = saleService.getSalesStats();
+        const stats = salesService.getSalesStats();
 
         res.status(200).json({
             success: true,
@@ -101,7 +116,7 @@ export const getSalesStats = asyncHandler(
 // Today sales
 export const getTodaySales = asyncHandler(
     async (req, res) => {
-        const todayData = saleService.getTodaySales();
+        const todayData = salesService.getTodaySales();
 
         res.status(200).json({
             success: true,
@@ -113,7 +128,7 @@ export const getTodaySales = asyncHandler(
 // Recent sales
 export const getRecentSales = asyncHandler(
     async (req, res) => {
-        const recentLogs = saleService.getRecentSales();
+        const recentLogs = salesService.getRecentSales();
 
         res.status(200).json({
             success: true,
@@ -127,7 +142,7 @@ export const getRecentSales = asyncHandler(
 export const getCustomerSales = asyncHandler(
     async (req, res) => {
         const { customerId } = req.params;
-        const history = saleService.getCustomerSales(Number(customerId));
+        const history = salesService.getCustomerSales(Number(customerId));
 
         res.status(200).json({
             success: true,
@@ -147,7 +162,7 @@ export const updateSalePayment = asyncHandler(
             return next(new AppError('Please provide a valid, positive incoming amount currency value', 400));
         }
 
-        saleService.updateSalePayment(Number(id), amount);
+        salesService.updateSalePayment(Number(id), amount);
 
         res.status(200).json({
             success: true,
@@ -161,7 +176,7 @@ export const markSalePaid = asyncHandler(
     async (req, res) => {
         const { id } = req.params;
         
-        saleService.markSalePaid(Number(id));
+        salesService.markSalePaid(Number(id));
 
         res.status(200).json({
             success: true,
@@ -173,7 +188,7 @@ export const markSalePaid = asyncHandler(
 // Get monthly sales
 export const getMonthlySales = asyncHandler(
     async (req, res) => {
-        const trend = saleService.getMonthlySales();
+        const trend = salesService.getMonthlySales();
         res.status(200).json({
             success: true,
             data: trend
@@ -184,7 +199,7 @@ export const getMonthlySales = asyncHandler(
 // Get sale report 
 export const getSalesReport = asyncHandler(
     async (req, res) => {
-        const report = saleService.getSalesReport();
+        const report = salesService.getSalesReport();
         res.status(200).json({
             success: true,
             data: report
@@ -195,7 +210,7 @@ export const getSalesReport = asyncHandler(
 // Get top medicines
 export const getTopSellingMedicines = asyncHandler(
     async (req, res) => {
-        const chartsData = saleService.getTopSellingMedicines();
+        const chartsData = salesService.getTopSellingMedicines();
         res.status(200).json({
             success: true,
             count: chartsData.length,

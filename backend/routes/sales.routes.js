@@ -1,7 +1,8 @@
-import express from 'express';
+import express from "express";
 import {
     getSales,
     getSaleById,
+    getSaleItems,
     createSale,
     deleteSale,
     getPaginatedSales,
@@ -16,34 +17,37 @@ import {
     getSalesReport,
     getTopSellingMedicines,
     getInvoice,
-    downloadInvoicePDF
-} from "../controllers/sales.controller.js"
+    downloadInvoicePDF,
+} from "../controllers/sales.controller.js";
 
 const router = express.Router();
 
-router.get("/", getPaginatedSales);
-router.post("/", createSale);
-router.get("/search", searchSales);
 router.get("/stats", getSalesStats);
-router.get("/customer/:customerId", getCustomerSales);
-router.patch("/:id/payment", updateSalePayment);
-router.patch("/:id/mark-paid", markSalePaid);
-router.get("/:id", getSaleById);
-router.delete("/:id", deleteSale);
+router.get("/report", getSalesReport);
 router.get("/today", getTodaySales);
 router.get("/recent", getRecentSales);
-router.get("/top-medicines", getTopSellingMedicines);
 router.get("/monthly", getMonthlySales);
-router.get("/report", getSalesReport);
+router.get("/top-medicines", getTopSellingMedicines);
 
-router.get(
-    "/:id/invoice",
-    getInvoice
-);
+router.get("/search", searchSales);
 
-router.get(
-    "/:id/pdf",
-    downloadInvoicePDF
-);
+router.get("/customer/:customerId", getCustomerSales);
+
+// NEW
+router.get("/:id/items", getSaleItems);
+
+router.patch("/:id/payment", updateSalePayment);
+router.patch("/:id/mark-paid", markSalePaid);
+
+router.get("/:id/invoice", getInvoice);
+router.get("/:id/pdf", downloadInvoicePDF);
+
+router.route("/")
+    .get(getPaginatedSales)
+    .post(createSale);
+
+router.route("/:id")
+    .get(getSaleById)
+    .delete(deleteSale);
 
 export default router;

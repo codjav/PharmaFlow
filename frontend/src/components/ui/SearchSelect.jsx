@@ -9,6 +9,12 @@ const SearchSelect = ({
   placeholder = "Search...",
   onSelect,
   disabled = false,
+
+  renderOption,
+
+  renderSelected,
+
+  emptyMessage = "No results found",
 }) => {
   const containerRef = useRef(null);
 
@@ -57,10 +63,13 @@ const SearchSelect = ({
   useEffect(() => {
     const selected = options.find((item) => item[valueKey] === value);
 
-    if (selected) {
-      setQuery(selected[labelKey]);
+    if (!selected) {
+      setQuery("");
+      return;
     }
-  }, [value, options, valueKey, labelKey]);
+
+    setQuery(renderSelected ? renderSelected(selected) : selected[labelKey]);
+  }, [value, options, valueKey, labelKey, renderSelected]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -69,13 +78,15 @@ const SearchSelect = ({
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
 
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
   }, []);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return [];
+    if (!query.trim()) {
+      return options.slice(0, 20);
+    }
 
     return options
       .filter((item) => {
@@ -97,7 +108,7 @@ const SearchSelect = ({
   }, [query, options, labelKey]);
 
   const choose = (item) => {
-    setQuery(item[labelKey]);
+    setQuery(renderSelected ? renderSelected(item) : item[labelKey]);
 
     setOpen(false);
 
@@ -133,8 +144,11 @@ const SearchSelect = ({
   };
 
   return (
-    <div ref={containerRef} className="relative w-64">
+    <div ref={containerRef} className="relative w-full">
       <input
+        aria-expanded={open}
+        aria-autocomplete="list"
+        autoComplete="off"
         ref={inputRef}
 
         disabled={disabled}
@@ -146,12 +160,13 @@ const SearchSelect = ({
         placeholder={placeholder}
 
         onFocus={() => {
-            if(!disabled){
-          setOpen(true);
-        }}}
+          if (!disabled) {
+            setOpen(true);
+          }
+        }}
 
         onChange={(e) => {
-            if(disabled) return;
+          if (disabled) return;
           setQuery(e.target.value);
           setOpen(true);
           setHighlighted(0);
@@ -167,27 +182,33 @@ const SearchSelect = ({
             className="max-h-72 overflow-y-auto rounded-lg border border-slate-200 bg-white shadow-2xl"
           >
             {filtered.length === 0 ? (
-              <div className="p-3 text-gray-500">No medicine found</div>
+              <div className="p-3 text-gray-500">{emptyMessage}</div>
             ) : (
               filtered.map((item, index) => (
                 <button
                   key={item[valueKey]}
-
                   type="button"
-
-                  onClick={() => choose(item)}
-
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    choose(item);
+                  }}
                   className={`block w-full border-b px-3 py-2 text-left ${
                     highlighted === index ? "bg-blue-100" : "hover:bg-slate-100"
                   }`}
                 >
-                  <div className="font-medium">{item[labelKey]}</div>
+                  {renderOption ? (
+                    renderOption(item)
+                  ) : (
+                    <>
+                      <div className="font-medium">{item[labelKey]}</div>
 
-                  <div className="text-xs text-gray-500">
-                    {item.company}
+                      <div className="text-xs text-gray-500">
+                        {item.company}
 
-                    {item.barcode && ` • ${item.barcode}`}
-                  </div>
+                        {item.barcode && ` • ${item.barcode}`}
+                      </div>
+                    </>
+                  )}
                 </button>
               ))
             )}
