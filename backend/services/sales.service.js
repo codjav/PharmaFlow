@@ -48,13 +48,6 @@ export const getSaleById = (id) => {
         );
     }
 
-    if (amount > sale.due_amount) {
-        throw new AppError(
-            "Payment amount cannot exceed pending due.",
-            400
-        );
-    }
-
     const items = db.prepare(`
         SELECT
             si.id,
