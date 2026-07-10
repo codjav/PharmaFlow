@@ -102,6 +102,15 @@ const PurchaseFeature = () => {
     updatePurchasePayment,
   } = usePurchaseMutation();
 
+  const loadNextInvoice = async () => {
+    try {
+      const invoice = await purchaseService.getNextInvoiceNumber();
+      setValue("invoice_number", invoice);
+    } catch {
+      toast.error("Unable to generate invoice number");
+    }
+  };
+
   const {
     register,
 
@@ -148,10 +157,10 @@ const PurchaseFeature = () => {
     setOpenDialog(false);
   }, [createPurchase.isPending, reset]);
 
-  const handleAdd = () => {
+  const handleAdd = async () => {
     reset(FORM_DEFAULTS);
-
     setOpenDialog(true);
+    await loadNextInvoice();
   };
 
   const handleView = async (purchase) => {
@@ -375,6 +384,38 @@ const PurchaseFeature = () => {
         />
       </Card>
 
+      {!debouncedSearch &&
+        data?.pagination &&
+        data.pagination.totalPages > 0 && (
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              Page {data.pagination.page} of {data.pagination.totalPages}
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+
+                disabled={page === 1 || isLoading}
+
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </Button>
+
+              <Button
+                variant="outline"
+
+                disabled={page >= data.pagination.totalPages || isLoading}
+
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
+
       {openDialog && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -405,6 +446,8 @@ const PurchaseFeature = () => {
                       required: "Invoice number is required",
                     })}
                     error={errors.invoice_number?.message}
+                    readOnly
+                    className="bg-slate-100"
                   />
 
                   <div>

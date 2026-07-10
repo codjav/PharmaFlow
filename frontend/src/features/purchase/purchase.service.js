@@ -32,10 +32,17 @@ export const createPurchase = (purchase) =>
 export const deletePurchase = (id) =>
     purchaseApi.deletePurchase(id);
 
-export const updatePurchasePayment = (
+export const updatePurchasePayment = ({
     id,
-    amount
-) => purchaseApi.updatePurchasePayment(id, amount);
+    amount,
+}) =>
+    purchaseApi.updatePurchasePayment({
+        id,
+        amount,
+    });
+
+export const getNextInvoiceNumber = () =>
+    purchaseApi.getNextInvoiceNumber();
 
 export const markPurchasePaid = (id) =>
     purchaseApi.markPurchasePaid(id);

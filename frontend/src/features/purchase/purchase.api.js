@@ -50,12 +50,21 @@ export const deletePurchase = async (id) => {
     return data;
 };
 
-export const updatePurchasePayment = async (id, amount) => {
+export const getNextInvoiceNumber = async () => {
+    const { data } = await api.get(
+        "/purchases/next-invoice"
+    );
+    return data.data;
+};
+
+export const updatePurchasePayment = async ({
+    id,
+    amount,
+}) => {
     const { data } = await api.patch(
         `/purchases/${id}/payment`,
         { amount }
     );
-
     return data;
 };
 

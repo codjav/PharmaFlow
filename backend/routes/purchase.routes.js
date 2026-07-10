@@ -11,6 +11,7 @@ import {
     getPaginatedPurchases,
     updatePurchasePayment,
     markPurchasePaid,
+    getNextInvoiceNumber,
     getPurchaseReport,
     getPurchaseItems
 } from "../controllers/purchase.controller.js";
@@ -34,6 +35,7 @@ router.route("/")
     .get(getPaginatedPurchases)
     .post(createPurchase);
 
+router.get("/next-invoice", getNextInvoiceNumber);
 router.route("/:id")
     .get(getPurchaseById)
     .delete(deletePurchase);

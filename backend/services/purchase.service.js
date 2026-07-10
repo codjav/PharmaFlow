@@ -67,6 +67,58 @@ export const getPurchaseItems = (purchaseId) => {
     `).all(purchaseId);
 };
 
+const generateInvoiceNumber = () => {
+    const today = new Date();
+
+    const date =
+        today.getFullYear().toString() +
+        String(today.getMonth() + 1).padStart(2, "0") +
+        String(today.getDate()).padStart(2, "0");
+
+    const lastPurchase = db.prepare(`
+        SELECT invoice_number
+        FROM purchases
+        WHERE invoice_number LIKE ?
+        ORDER BY id DESC
+        LIMIT 1
+    `).get(`PUR-${date}-%`);
+
+    let sequence = 1;
+
+    if (lastPurchase) {
+        const parts = lastPurchase.invoice_number.split("-");
+        sequence = Number(parts[2]) + 1;
+    }
+
+    return `PUR-${date}-${String(sequence).padStart(4, "0")}`;
+};
+
+export const getNextInvoiceNumber = () => {
+    const today = new Date();
+
+    const date =
+        today.getFullYear().toString() +
+        String(today.getMonth() + 1).padStart(2, "0") +
+        String(today.getDate()).padStart(2, "0");
+
+    const lastPurchase = db.prepare(`
+        SELECT invoice_number
+        FROM purchases
+        WHERE invoice_number LIKE ?
+        ORDER BY id DESC
+        LIMIT 1
+    `).get(`PUR-${date}-%`);
+
+    let sequence = 1;
+
+    if (lastPurchase) {
+        const parts = lastPurchase.invoice_number.split("-");
+        sequence = Number(parts[2]) + 1;
+    }
+
+    return `PUR-${date}-${String(sequence).padStart(4, "0")}`;
+};
+
 // POST    /api/purchases
 // Create Purchase
 export const createPurchase = (purchaseData) => {
@@ -74,11 +126,12 @@ export const createPurchase = (purchaseData) => {
 
     const transaction = db.transaction(() => {
         const {
-            invoice_number,
             supplier_id,
             paid_amount = 0,
             items,
         } = purchaseData;
+
+        const invoice_number = generateInvoiceNumber();
 
         let totalAmount = 0;
 

@@ -15,6 +15,20 @@ export const getAllPurchases = asyncHandler(
     }
 );
 
+export const getNextInvoiceNumber = asyncHandler(
+    async (req, res) => {
+
+        const invoice =
+            purchaseService.getNextInvoiceNumber();
+
+        res.status(200).json({
+            success: true,
+            data: invoice
+        });
+
+    }
+);
+
 // Get by id
 export const getPurchaseById = asyncHandler(
     async (req, res) => {
