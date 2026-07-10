@@ -1,31 +1,56 @@
-import db from "../config/db.js"
+import db from "../config/db.js";
 import bcrypt from "bcryptjs";
-import AppError from "../utils/AppError.js"
+import AppError from "../utils/AppError.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// Secure path setup for ES Modules
+// ES Module Paths
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Dynamic fully qualified path definitions independent of server process entry points
-const DATABASE_SOURCE_PATH = path.resolve(__dirname, "../database/pharmacy.db");
-const BACKUPS_DIR_PATH = path.resolve(__dirname, "../backups");
+const DATABASE_SOURCE_PATH = path.resolve(
+    __dirname,
+    "../database/pharmacy.db"
+);
 
-// GET     /api/settings
-// Get settings
+const settings = db.prepare(`
+    SELECT backup_location
+    FROM settings
+    LIMIT 1
+`).get();
+
+const backupDirectory =
+    settings?.backup_location ||
+    path.join(os.homedir(), "Downloads", "Pharmacy Backups");
+
+
+
+/* ==========================================================
+   GENERAL SETTINGS
+========================================================== */
+
 export const getSettings = () => {
     return db.prepare(`
-        SELECT *
+        SELECT
+            pharmacy_name,
+            owner_name,
+            phone,
+            email,
+            address,
+            gst_number,
+            drug_license_number,
+            theme,
+            auto_backup,
+            backup_location,
+            backup_frequency
         FROM settings
         LIMIT 1
     `).get();
 };
 
-// PUT     /api/settings
-// Update settings
 export const updateSettings = (data) => {
+
     const {
         pharmacy_name,
         owner_name,
@@ -34,15 +59,12 @@ export const updateSettings = (data) => {
         address,
         gst_number,
         drug_license_number,
-        invoice_prefix,
-        purchase_prefix,
-        currency,
         theme
     } = data;
 
     db.prepare(`
-        UPDATE settings 
-        SET 
+        UPDATE settings
+        SET
             pharmacy_name = ?,
             owner_name = ?,
             phone = ?,
@@ -50,9 +72,6 @@ export const updateSettings = (data) => {
             address = ?,
             gst_number = ?,
             drug_license_number = ?,
-            invoice_prefix = ?,
-            purchase_prefix = ?,
-            currency = ?,
             theme = ?
         WHERE id = 1
     `).run(
@@ -63,18 +82,47 @@ export const updateSettings = (data) => {
         address,
         gst_number,
         drug_license_number,
-        invoice_prefix,
-        purchase_prefix,
-        currency,
         theme
     );
 
     return getSettings();
 };
- 
-// PATCH /api/settings/change-password
-// Change Password
-export const changePassword = (currentPassword, newPassword) => {
+
+
+
+/* ==========================================================
+   SECURITY
+========================================================== */
+
+export const changeUsername = (newUsername) => {
+
+    const existing = db.prepare(`
+        SELECT id
+        FROM users
+        WHERE username = ?
+    `).get(newUsername);
+
+    if (existing) {
+        throw new AppError(
+            "Username already exists.",
+            400
+        );
+    }
+
+    db.prepare(`
+        UPDATE users
+        SET username = ?
+        WHERE id = 1
+    `).run(newUsername);
+};
+
+
+
+export const changePassword = (
+    currentPassword,
+    newPassword
+) => {
+
     const user = db.prepare(`
         SELECT *
         FROM users
@@ -86,9 +134,16 @@ export const changePassword = (currentPassword, newPassword) => {
         user.password
     );
 
-    if(!match) {
+    if (!match) {
         throw new AppError(
-            "Current password is incorrect",
+            "Current password is incorrect.",
+            400
+        );
+    }
+
+    if (newPassword.length < 6) {
+        throw new AppError(
+            "Password must be at least 6 characters.",
             400
         );
     }
@@ -108,28 +163,17 @@ export const changePassword = (currentPassword, newPassword) => {
     );
 };
 
-// PATCH /api/settings/change-username
-// Change username
-export const changeUsername = (newUsername) => {
-    db.prepare(`
-        UPDATE users
-        SET username = ?
-        WHERE id = 1
-    `).run(newUsername);
-};
 
-// POST  /api/auth/logout
-// Logout
-export const logout = () => {
-    return {
-        success: true,
-        message: "Logged out successfully"
-    };
-};
 
-// PATCH /api/settings/theme
-// Theme
 export const updateTheme = (theme) => {
+
+    if (!["LIGHT", "DARK"].includes(theme)) {
+        throw new AppError(
+            "Invalid theme.",
+            400
+        );
+    }
+
     db.prepare(`
         UPDATE settings
         SET theme = ?
@@ -137,109 +181,45 @@ export const updateTheme = (theme) => {
     `).run(theme);
 };
 
-// GET     /api/settings/printer
-// Get printer settings
-export const getPrinterSettings = () => {
-    return db.prepare(`
-        SELECT 
-            printer_type,
-            default_printer,
-            invoice_size
-        FROM settings
-        LIMIT 1
-    `).get();
+
+
+export const logout = () => {
+    return {
+        success: true,
+        message: "Logged out successfully."
+    };
 };
 
-// PUT     /api/settings/printer
-// Update printer settings
-export const updatePrinterSettings = (
-    printer_type,
-    default_printer,
-    invoice_size
-) => {
-    db.prepare(`
-        UPDATE settings
-        SET 
-            printer_type = ?,
-            default_printer = ?,
-            invoice_size = ?
-        WHERE id = 1
-    `).run(
-        printer_type,
-        default_printer,
-        invoice_size
-    );
-};
 
-// GET     /api/settings/invoice
-// Get invoice settings
-export const getInvoiceSettings = () => {
-    return db.prepare(`
-        SELECT 
-            invoice_prefix,
-            purchase_prefix,
-            currency,
-            show_logo,
-            show_gst,
-            footer_message
-        FROM settings
-        LIMIT 1
-    `).get();
-};
 
-// PUT     /api/settings/invoice
-// Update invoice settings
-export const updateInvoiceSettings = (
-    invoice_prefix,
-    purchase_prefix,
-    currency,
-    show_logo,
-    show_gst,
-    footer_message
-) => {
-    db.prepare(`
-        UPDATE settings
-        SET
-            invoice_prefix = ?,
-            purchase_prefix = ?,
-            currency = ?,
-            show_logo = ?,
-            show_gst = ?,
-            footer_message = ?
-        WHERE id = 1
-    `).run(
-        invoice_prefix,
-        purchase_prefix,
-        currency,
-        show_logo,
-        show_gst,
-        footer_message
-    );
-};
+/* ==========================================================
+   BACKUP SETTINGS
+========================================================== */
 
-// GET     /api/settings/backup
-// Get backup settings
 export const getBackupSettings = () => {
+
     return db.prepare(`
-        SELECT 
+        SELECT
             auto_backup,
             backup_location,
             backup_frequency
         FROM settings
         LIMIT 1
     `).get();
+
 };
 
-// PUT     /api/settings/backup
-// Update backup settings
+
+
 export const updateBackupSettings = (
     auto_backup,
     backup_location,
     backup_frequency
 ) => {
+
     db.prepare(`
         UPDATE settings
-        SET 
+        SET
             auto_backup = ?,
             backup_location = ?,
             backup_frequency = ?
@@ -251,48 +231,101 @@ export const updateBackupSettings = (
     );
 
     return getBackupSettings();
+
 };
 
-// POST    /api/settings/backup/create
-// Create backup
+
+
+/* ==========================================================
+   CREATE BACKUP
+========================================================== */
+
 export const createBackup = () => {
-    if (!fs.existsSync(BACKUPS_DIR_PATH)) {
-        fs.mkdirSync(BACKUPS_DIR_PATH, { recursive: true });
+
+    if (!fs.existsSync(backupDirectory)) {
+        fs.mkdirSync(
+            backupDirectory,
+            { recursive: true }
+        );
     }
 
     const timestamp = Date.now();
-    const fileName = `backup-${timestamp}.db`;
-    const destination = path.join(BACKUPS_DIR_PATH, fileName);
 
-    fs.copyFileSync(DATABASE_SOURCE_PATH, destination);
+    const fileName = `backup-${timestamp}.db`;
+
+    const destination = path.join(
+        backupDirectory,
+        fileName
+    );
+
+    fs.copyFileSync(
+        DATABASE_SOURCE_PATH,
+        destination
+    );
 
     db.prepare(`
-        INSERT INTO backup_history(file_name, file_path)
+        INSERT INTO backup_history(
+            file_name,
+            file_path
+        )
         VALUES(?, ?)
-    `).run(fileName, destination);
+    `).run(
+        fileName,
+        destination
+    );
 
     return {
         fileName,
         destination
     };
+
 };
 
-// POST    /api/settings/backup/restore
-// Restore backup
+
+
+/* ==========================================================
+   RESTORE BACKUP
+========================================================== */
+
 export const restoreBackup = (backupPath) => {
+
     if (!fs.existsSync(backupPath)) {
-        throw new AppError("Target system file archive backup variant layout not found", 404);
+        throw new AppError(
+            "Backup file not found.",
+            404
+        );
     }
 
-    fs.copyFileSync(backupPath, DATABASE_SOURCE_PATH);
+    try {
+
+        fs.copyFileSync(
+            backupPath,
+            DATABASE_SOURCE_PATH
+        );
+
+    } catch {
+
+        throw new AppError(
+            "Unable to restore backup.",
+            500
+        );
+
+    }
+
 };
 
-// GET     /api/settings/backup/history
-// Backup history
+
+
+/* ==========================================================
+   BACKUP HISTORY
+========================================================== */
+
 export const getBackupHistory = () => {
+
     return db.prepare(`
         SELECT *
         FROM backup_history
         ORDER BY backup_date DESC
     `).all();
+
 };

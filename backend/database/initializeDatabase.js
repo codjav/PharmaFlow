@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 
 import db from "../config/db.js";
-import { createAdmin } from "../services/auth.service.js";
+import { createAdmin, createDefaultSettings } from "../services/auth.service.js";
 
 export const initializeDatabase = () => {
 
@@ -20,6 +20,7 @@ export const initializeDatabase = () => {
     db.exec(schema);
 
     createAdmin();
+createDefaultSettings();
 
     console.log("Database initialized successfully.");
 

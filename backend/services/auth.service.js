@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import os from "os";
+import path from "path";
 
 import db from "../config/db.js";
 import AppError from "../utils/AppError.js";
@@ -90,4 +92,53 @@ export const createAdmin = () => {
     console.log(
         "Default admin created"
     );
+};
+
+export const createDefaultSettings = () => {
+    const existingSettings = db.prepare(`
+        SELECT id
+        FROM settings
+        LIMIT 1
+    `).get();
+
+    const defaultBackupLocation = path.join(
+    os.homedir(),
+    "Downloads",
+    "Pharmacy Backups"
+);
+
+    if (existingSettings) {
+        return;
+    }
+
+    db.prepare(`
+        INSERT INTO settings (
+            pharmacy_name,
+            owner_name,
+            phone,
+            email,
+            address,
+            gst_number,
+            drug_license_number,
+            theme,
+            auto_backup,
+            backup_location,
+            backup_frequency
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+        "My Pharmacy",
+        "Administrator",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "LIGHT",
+        1,
+        defaultBackupLocation,
+        "DAILY"
+    );
+
+    console.log("Default settings created");
 };

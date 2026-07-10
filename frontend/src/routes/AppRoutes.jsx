@@ -12,6 +12,7 @@ import PurchasePage from "@/pages/Purchase/PurchasePage";
 import SalesPage from "@/pages/Sales/SalesPage";
 import AlertsPage from "@/pages/Alerts/AlertsPage";
 import ReportsPage from "@/pages/Reports/ReportsPage";
+import SettingsPage from "@/pages/Settings/SettingsPage";
 
 
 function AppRoutes() {
@@ -67,6 +68,11 @@ function AppRoutes() {
                 <Route
                     path="/reports"
                     element={<ReportsPage />}
+                />
+
+                <Route
+                    path="/settings"
+                    element={<SettingsPage />}
                 />
             </Route>
 

@@ -1,41 +1,63 @@
-import express from 'express';
+import express from "express";
+
 import {
-    getSystemSettings, updateSystemSettings, processPasswordChange,
-    processUsernameChange, processUserLogout, processThemeToggle,
-    getPrinterConfig, updatePrinterConfig, getInvoiceConfig,
-    updateInvoiceConfig, getBackupConfig, updateBackupConfig,
-    commitSnapshotBackup, commitSnapshotRestore, getBackupLogsHistory
-} from '../controllers/settings.controller.js';
+    getSystemSettings,
+    updateSystemSettings,
+    processPasswordChange,
+    processUsernameChange,
+    processThemeToggle,
+    processUserLogout,
+    getBackupConfig,
+    updateBackupConfig,
+    commitSnapshotBackup,
+    commitSnapshotRestore,
+    getBackupLogsHistory,
+} from "../controllers/settings.controller.js";
 
 const router = express.Router();
 
-// General Base Endpoint Operations Layout
-router.route('/')
+
+
+// ==========================
+// General Settings
+// ==========================
+
+router
+    .route("/")
     .get(getSystemSettings)
     .put(updateSystemSettings);
 
-// Identity Control Security Endpoints
-router.patch('/change-password', processPasswordChange);
-router.patch('/change-username', processUsernameChange);
-router.patch('/theme', processThemeToggle);
-router.post('/logout', processUserLogout);
 
-// Layout Customization Modules Endpoints
-router.route('/printer')
-    .get(getPrinterConfig)
-    .put(updatePrinterConfig);
 
-router.route('/invoice')
-    .get(getInvoiceConfig)
-    .put(updateInvoiceConfig);
+// ==========================
+// Security
+// ==========================
 
-// Automated Storage Safety Modules Endpoints
-router.route('/backup')
+router.patch("/change-username", processUsernameChange);
+
+router.patch("/change-password", processPasswordChange);
+
+router.patch("/theme", processThemeToggle);
+
+router.post("/logout", processUserLogout);
+
+
+
+// ==========================
+// Backup
+// ==========================
+
+router
+    .route("/backup")
     .get(getBackupConfig)
     .put(updateBackupConfig);
 
-router.get('/backup/history', getBackupLogsHistory);
-router.post('/backup/create', commitSnapshotBackup);
-router.post('/backup/restore', commitSnapshotRestore);
+router.get("/backup/history", getBackupLogsHistory);
+
+router.post("/backup/create", commitSnapshotBackup);
+
+router.post("/backup/restore", commitSnapshotRestore);
+
+
 
 export default router;
