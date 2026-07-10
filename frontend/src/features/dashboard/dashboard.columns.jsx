@@ -17,9 +17,7 @@ export const recentSalesColumns = [
         header: "Amount",
 
         cell: ({ row }) => (
-
-            <>₹{Number(row.original.total_sales).toLocaleString("en-IN")}</>
-
+            <>₹{Number(row.original.total_amount ?? 0).toLocaleString("en-IN")}</>
         ),
     },
 
@@ -66,11 +64,13 @@ export const recentPurchaseColumns = [
         accessorKey: "total_amount",
         header: "Amount",
 
-        cell: ({ row }) => (
+        cell: ({ row }) => {
+    console.log("Purchase Row:", row.original);
 
-            <>₹{row.original.total_amount}</>
-
-        ),
+    return (
+        <>₹{Number(row.original.total_amount ?? 0).toLocaleString("en-IN")}</>
+    );
+},
     },
 
     {
@@ -138,7 +138,7 @@ export const topCustomerColumns = [
 
         cell: ({ row }) => (
 
-            <>₹{row.original.totalSales ?? 0}</>
+            <>₹{Number(row.original.total_sales ?? 0).toLocaleString("en-IN")}</>
 
         ),
     },
