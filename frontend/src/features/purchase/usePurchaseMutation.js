@@ -47,10 +47,10 @@ const usePurchaseMutation = () => {
 
     const updatePurchasePayment = useMutation({
         mutationFn: ({ id, amount }) =>
-            purchaseService.updatePurchasePayment(
+            purchaseService.updatePurchasePayment({
                 id,
-                amount
-            ),
+                amount,
+            }),
 
         onSuccess: (response) => {
 
