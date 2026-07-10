@@ -1,0 +1,28 @@
+{
+  "name": "pharmaflow",
+  "version": "1.0.0",
+  "description": "Offline Pharmacy Management System",
+  "main": "electron/main.js",
+  "type": "module",
+  "author": "Mohammad Javed Ali",
+  "license": "MIT",
+
+  "scripts": {
+    "frontend": "cd frontend && npm run dev",
+    "backend": "cd backend && npm run dev",
+
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+
+    "electron": "electron .",
+
+    "electron-dev": "concurrently \"npm run backend\" \"npm run frontend\" \"wait-on http://localhost:5173 http://localhost:5001 && electron .\""
+  },
+
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
+    "electron": "^38.1.0",
+    "electron-builder": "^26.0.12",
+    "wait-on": "^8.0.5"
+  }
+}
