@@ -73,6 +73,7 @@ const SalesFeature = () => {
   const [deleteSale, setDeleteSale] = useState(null);
 
   const [markPaidSale, setMarkPaidSale] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
 
   const [page, setPage] = useState(1);
 
@@ -110,8 +111,8 @@ const SalesFeature = () => {
   const {
     createSale,
     deleteSale: deleteMutation,
-    markSalePaid,
-  } = useSalesMutation();
+    updateSalePayment,
+} = useSalesMutation();
 
   /* -----------------------------
        Data
@@ -328,6 +329,43 @@ const SalesFeature = () => {
     pdf.save(`${viewSale.invoice_number}.pdf`);
   };
 
+  const submitPayment = async () => {
+
+  if (!markPaidSale) return;
+
+  if (!paymentAmount || Number(paymentAmount) <= 0) {
+    toast.error("Enter a valid payment amount.");
+    return;
+  }
+
+  if (Number(paymentAmount) > Number(markPaidSale.due_amount)) {
+    toast.error("Payment cannot exceed pending due.");
+    return;
+  }
+
+  try {
+
+    await updateSalePayment.mutateAsync({
+    id: markPaidSale.id,
+    amount: Number(paymentAmount),
+});
+
+    toast.success("Payment updated successfully.");
+
+    setMarkPaidSale(null);
+    setPaymentAmount("");
+
+  } catch (error) {
+
+    toast.error(
+      error?.response?.data?.message ||
+      "Unable to update payment."
+    );
+
+  }
+
+};
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
       <Card title="Invoice Details" subtitle="Customer and payment information">
@@ -459,8 +497,8 @@ const SalesFeature = () => {
     setQuantity(Math.max(1, Math.min(value, max)));
   }}
 />
-
-        <div className="flex items-end">
+</div>
+        <div className="flex items-end mt-5">
           <Button
             fullWidth
             leftIcon={<Plus size={18} />}
@@ -471,7 +509,6 @@ const SalesFeature = () => {
           </Button>
         </div>
 
-        </div>
       </Card>
 
       <Card
@@ -573,7 +610,10 @@ const SalesFeature = () => {
           columns={salesColumns({
             onView: setViewSale,
             onDelete: setDeleteSale,
-            onMarkPaid: setMarkPaidSale,
+            onMarkPaid: (sale) => {
+              setMarkPaidSale(sale);
+              setPaymentAmount("");
+            },
           })}
           loading={isLoading}
         />
@@ -665,36 +705,86 @@ const SalesFeature = () => {
         </p>
       </AppDialog>
       <AppDialog
-        open={!!markPaidSale}
-        onOpenChange={() => setMarkPaidSale(null)}
-        title="Mark Payment"
-        footer={
-          <AppDialogFooter>
-            <Button variant="outline" onClick={() => setMarkPaidSale(null)}>
-              Cancel
-            </Button>
-
-            <Button
-              loading={markSalePaid.isPending}
-              onClick={async () => {
-                await markSalePaid.mutateAsync(markPaidSale.id);
-
-                toast.success("Payment Updated");
-
-                setMarkPaidSale(null);
-              }}
-            >
-              Mark Paid
-            </Button>
-          </AppDialogFooter>
-        }
+  open={!!markPaidSale}
+  onOpenChange={() => {
+    setMarkPaidSale(null);
+    setPaymentAmount("");
+  }}
+  title="Mark Payment"
+  footer={
+    <AppDialogFooter>
+      <Button
+        variant="outline"
+        disabled={updateSalePayment.isPending}
+        onClick={() => {
+          setMarkPaidSale(null);
+          setPaymentAmount("");
+        }}
       >
-        <p>
-          Mark invoice
-          <strong> {markPaidSale?.invoice_number}</strong>
-          as paid?
-        </p>
-      </AppDialog>
+        Cancel
+      </Button>
+
+      <Button
+        loading={updateSalePayment.isPending}
+        disabled={
+          !paymentAmount ||
+          Number(paymentAmount) <= 0 ||
+          Number(paymentAmount) > Number(markPaidSale?.due_amount)
+        }
+        onClick={submitPayment}
+      >
+        Mark Paid
+      </Button>
+    </AppDialogFooter>
+  }
+>
+  <div className="space-y-4">
+
+    <div>
+      Invoice:
+      <strong> {markPaidSale?.invoice_number}</strong>
+    </div>
+
+    <div>
+      Total:
+      <strong> ₹{markPaidSale?.total_amount}</strong>
+    </div>
+
+    <div>
+      Paid:
+      <strong> ₹{markPaidSale?.paid_amount}</strong>
+    </div>
+
+    <div className="text-red-600">
+      Due:
+      <strong> ₹{markPaidSale?.due_amount}</strong>
+    </div>
+
+    <Input
+      label="Amount Paid"
+      type="number"
+      min={1}
+      max={markPaidSale?.due_amount}
+      step="0.01"
+      value={paymentAmount}
+      onChange={(e) => setPaymentAmount(e.target.value)}
+    />
+
+    {paymentAmount && (
+      <p className="text-sm text-slate-600">
+        Remaining Due:{" "}
+        <strong>
+          ₹
+          {(
+            Number(markPaidSale?.due_amount) -
+            Number(paymentAmount || 0)
+          ).toFixed(2)}
+        </strong>
+      </p>
+    )}
+
+  </div>
+</AppDialog>
     </form>
   );
 };

@@ -45,14 +45,6 @@ export const updateSalePayment = async ({
     return data;
 };
 
-export const markSalePaid = async (id) => {
-    const { data } = await api.patch(
-        `/sales/${id}/mark-paid`
-    );
-
-    return data;
-};
-
 export const searchSales = async (keyword) => {
     const { data } = await api.get(
         "/sales/search",
@@ -128,7 +120,6 @@ export default {
     createSale,
     deleteSale,
     updateSalePayment,
-    markSalePaid,
     searchSales,
     getSalesStats,
     getRecentSales,

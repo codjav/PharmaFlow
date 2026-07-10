@@ -61,6 +61,9 @@ const PurchaseFeature = () => {
 
   const [deletePurchase, setDeletePurchase] = useState(null);
 
+  const [paymentPurchase, setPaymentPurchase] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+
   const limit = 10;
 
   const {
@@ -95,8 +98,8 @@ const PurchaseFeature = () => {
 
   const {
     createPurchase,
-
     deletePurchase: deleteMutation,
+    updatePurchasePayment,
   } = usePurchaseMutation();
 
   const {
@@ -165,7 +168,15 @@ const PurchaseFeature = () => {
     setDeletePurchase(purchase);
   };
 
-  const columns = useMemo(() => purchaseColumns(handleView, handleDelete), []);
+  const handlePayment = (purchase) => {
+    setPaymentPurchase(purchase);
+    setPaymentAmount("");
+  };
+
+  const columns = useMemo(
+    () => purchaseColumns(handleView, handleDelete, handlePayment),
+    [handleView],
+  );
 
   const handleSearch = (e) => {
     setSearch(e.target.value);
@@ -265,6 +276,34 @@ const PurchaseFeature = () => {
     setValue(`items.${index}.selling_price`, "");
   };
 
+  const submitPayment = async () => {
+    if (!paymentPurchase) return;
+
+    if (!paymentAmount || Number(paymentAmount) <= 0) {
+      toast.error("Enter a valid payment amount.");
+      return;
+    }
+
+    if (Number(paymentAmount) > Number(paymentPurchase.due_amount)) {
+      toast.error("Payment cannot exceed pending due.");
+      return;
+    }
+
+    try {
+      await updatePurchasePayment.mutateAsync({
+        id: paymentPurchase.id,
+        amount: Number(paymentAmount),
+      });
+
+      toast.success("Payment updated successfully");
+
+      setPaymentPurchase(null);
+      setPaymentAmount("");
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Unable to update payment");
+    }
+  };
+
   const confirmDelete = async () => {
     if (!deletePurchase) return;
 
@@ -326,7 +365,10 @@ const PurchaseFeature = () => {
           data={debouncedSearch ? (data ?? []) : (data?.purchases ?? [])}
 
           loading={
-            isLoading || createPurchase.isPending || deleteMutation.isPending
+            isLoading ||
+            createPurchase.isPending ||
+            deleteMutation.isPending ||
+            updatePurchasePayment.isPending
           }
 
           emptyMessage="No purchases found"
@@ -556,7 +598,12 @@ const PurchaseFeature = () => {
               {/* Footer */}
 
               <div className="flex justify-end gap-4">
-                <Button type="button" variant="outline" onClick={closeDialog}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeDialog}
+                  disabled={updatePurchasePayment.isPending}
+                >
                   Cancel
                 </Button>
 
@@ -676,6 +723,73 @@ const PurchaseFeature = () => {
                   </p>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {paymentPurchase && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onMouseDown={(e) => {
+            if (
+              e.target === e.currentTarget &&
+              !updatePurchasePayment.isPending
+            ) {
+              setPaymentPurchase(null);
+            }
+          }}
+        >
+          <div className="w-full max-w-md rounded-xl bg-white p-6">
+            <h2 className="text-xl font-semibold">Mark Purchase Payment</h2>
+
+            <div className="mt-5 space-y-3">
+              <p>
+                Invoice:
+                <strong> {paymentPurchase.invoice_number}</strong>
+              </p>
+
+              <p>
+                Total:
+                <strong> ₹{paymentPurchase.total_amount}</strong>
+              </p>
+
+              <p>
+                Paid:
+                <strong> ₹{paymentPurchase.paid_amount}</strong>
+              </p>
+
+              <p className="text-red-600">
+                Due:
+                <strong> ₹{paymentPurchase.due_amount}</strong>
+              </p>
+
+              <Input
+                label="Amount Paid"
+                type="number"
+                min={1}
+                max={paymentPurchase.due_amount}
+                step="0.01"
+                placeholder={`Maximum ₹${paymentPurchase.due_amount}`}
+                value={paymentAmount}
+                onChange={(e) => setPaymentAmount(e.target.value)}
+              />
+            </div>
+
+            <div className="mt-8 flex justify-end gap-4">
+              <Button
+                variant="outline"
+                onClick={() => setPaymentPurchase(null)}
+              >
+                Cancel
+              </Button>
+
+              <Button
+                loading={updatePurchasePayment.isPending}
+                onClick={submitPayment}
+              >
+                Mark Paid
+              </Button>
             </div>
           </div>
         </div>

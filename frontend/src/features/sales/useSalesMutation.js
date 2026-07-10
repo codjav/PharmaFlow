@@ -42,8 +42,7 @@ const useSalesMutation = () => {
     });
 
     const updateSalePayment = useMutation({
-        mutationFn: ({ id, amount }) =>
-            salesService.updateSalePayment(id, amount),
+        mutationFn: salesService.updateSalePayment,
         onSuccess,
     });
 

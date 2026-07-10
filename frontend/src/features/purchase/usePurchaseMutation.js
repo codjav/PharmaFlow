@@ -2,6 +2,7 @@ import {
     useMutation,
     useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import * as purchaseService from "./purchase.service";
 
@@ -51,7 +52,12 @@ const usePurchaseMutation = () => {
                 amount
             ),
 
-        onSuccess: () => {
+        onSuccess: (response) => {
+
+            toast.success(
+                response.message || "Payment updated successfully."
+            );
+
             queryClient.invalidateQueries({
                 queryKey: ["purchases"],
             });
@@ -59,6 +65,16 @@ const usePurchaseMutation = () => {
             queryClient.invalidateQueries({
                 queryKey: ["suppliers"],
             });
+
+        },
+
+        onError: (error) => {
+
+            toast.error(
+                error.response?.data?.message ||
+                "Failed to update payment."
+            );
+
         },
     });
 

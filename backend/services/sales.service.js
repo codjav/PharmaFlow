@@ -48,6 +48,13 @@ export const getSaleById = (id) => {
         );
     }
 
+    if (amount > sale.due_amount) {
+        throw new AppError(
+            "Payment amount cannot exceed pending due.",
+            400
+        );
+    }
+
     const items = db.prepare(`
         SELECT
             si.id,
@@ -596,8 +603,8 @@ export const updateSalePayment = (saleId, amount) => {
 
     db.prepare(`
         UPDATE customers
-        SET 
-            pending_due = pending_due - ?
+        SET
+            pending_due = MAX(0, pending_due - ?)
         WHERE id = ?
     `).run(
         amount,

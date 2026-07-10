@@ -13,26 +13,25 @@ const useDashboard = () => {
     });
 
     return {
-
         summary,
 
         stats: summary.data?.stats,
 
-        recentSales: summary.data?.recentSales,
+        recentSales: summary.data?.tables?.recentSales ?? [],
 
-        recentPurchases: summary.data?.recentPurchases,
+        recentPurchases: summary.data?.tables?.recentPurchases ?? [],
 
-        topMedicines: summary.data?.topMedicines,
+        topMedicines: summary.data?.tables?.topMedicines ?? [],
 
-        topCustomers: summary.data?.topCustomers,
+        topCustomers: summary.data?.tables?.topCustomers ?? [],
 
-        lowStock: summary.data?.lowStock,
+        lowStock: summary.data?.tables?.lowStock ?? [],
 
-        expiringBatches: summary.data?.expiringBatches,
+        expiringBatches: summary.data?.tables?.expiringBatches ?? [],
 
-        monthlySales: summary.data?.monthlySales,
+        monthlySales: summary.data?.charts?.monthlySales ?? [],
 
-        monthlyPurchases: summary.data?.monthlyPurchases,
+        monthlyPurchases: summary.data?.charts?.monthlyPurchases ?? [],
 
         isLoading: summary.isLoading,
 
@@ -40,8 +39,7 @@ const useDashboard = () => {
 
         error: summary.error,
 
-        refetch: summary.refetch
-
+        refetch: summary.refetch,
     };
 
 };

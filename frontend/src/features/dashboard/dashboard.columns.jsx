@@ -18,7 +18,7 @@ export const recentSalesColumns = [
 
         cell: ({ row }) => (
 
-            <>₹{row.original.total_amount}</>
+            <>₹{Number(row.original.total_sales).toLocaleString("en-IN")}</>
 
         ),
     },
@@ -108,8 +108,13 @@ export const topMedicineColumns = [
     },
 
     {
-        accessorKey: "quantitySold",
-        header: "Sold",
+        accessorKey: "quantity_sold",
+        header: "Quantity Sold",
+        cell: ({ row }) => (
+            <span className="font-semibold">
+                {row.original.quantity_sold}
+            </span>
+        ),
     },
 
 ];
@@ -145,11 +150,6 @@ export const lowStockColumns = [
     {
         accessorKey: "medicine_name",
         header: "Medicine",
-    },
-
-    {
-        accessorKey: "batch_number",
-        header: "Batch",
     },
 
     {

@@ -7,8 +7,7 @@ import {
     Receipt,
     FileText,
     TriangleAlert,
-    Settings,
-    LogOut
+    Settings
 } from "lucide-react";
 import ROUTES from "./routes";
 
@@ -57,10 +56,5 @@ export const SIDEBAR_ITEMS = [
         title: "Settings",
         path: ROUTES.SETTINGS,
         icon: Settings
-    },
-    {
-        title: "Logout",
-        path: "/logout",
-        icon: LogOut
     }
 ];

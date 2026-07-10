@@ -449,6 +449,14 @@ export const updatePurchasePayment = (purchaseId, amount) => {
     }
 
     const newPaidAmount = purchase.paid_amount + amount;
+
+    if (newPaidAmount > purchase.total_amount) {
+        throw new AppError(
+            "Payment cannot exceed total purchase amount.",
+            400
+        );
+    }
+
     const newDueAmount = purchase.total_amount - newPaidAmount;
 
     db.prepare(
@@ -475,6 +483,16 @@ export const updatePurchasePayment = (purchaseId, amount) => {
         WHERE id = ?
     `,
     ).run(amount, purchase.supplier_id);
+
+    return db.prepare(`
+        SELECT
+            p.*,
+            s.name AS supplier_name
+        FROM purchases p
+        JOIN suppliers s
+            ON s.id = p.supplier_id
+        WHERE p.id = ?
+    `).get(purchaseId);
 };
 
 // PATCH   /api/purchases/:id/mark-paid

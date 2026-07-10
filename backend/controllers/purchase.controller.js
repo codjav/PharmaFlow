@@ -138,11 +138,15 @@ export const updatePurchasePayment = asyncHandler(
             return next(new AppError("Please, specify a valid positive amount",400));
         }
 
-        purchaseService.updatePurchasePayment(Number(id), amount);
+        const purchase = purchaseService.updatePurchasePayment(
+            Number(id),
+            amount
+        );
 
         res.status(200).json({
             success: true,
-            message: 'Payment adjustment done'
+            message: "Payment adjustment done",
+            data: purchase
         });
     }
 );

@@ -9,32 +9,61 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-
     const [isLoading, setIsLoading] = useState(true);
 
+    // Restore login after refresh
     useEffect(() => {
-        // Future:
-        // Restore session from Electron Store / SQLite if needed.
+        const storedAuth = localStorage.getItem("auth");
+
+        if (storedAuth) {
+            try {
+                const parsed = JSON.parse(storedAuth);
+
+                if (parsed.user) {
+                    setUser(parsed.user);
+                    setIsAuthenticated(true);
+                }
+            } catch (error) {
+                console.error("Invalid auth data", error);
+                localStorage.removeItem("auth");
+            }
+        }
+
         setIsLoading(false);
     }, []);
 
-    const login = (userData) => {
-        setUser(userData);
+    const login = ({ user }) => {
+        setUser(user);
         setIsAuthenticated(true);
+
+        localStorage.setItem(
+            "auth",
+            JSON.stringify({ user })
+        );
     };
 
     const logout = () => {
         setUser(null);
         setIsAuthenticated(false);
+
+        localStorage.removeItem("auth");
     };
 
     const updateUser = (updatedUser) => {
-        setUser((previousUser) => ({
-            ...previousUser,
+        const newUser = {
+            ...user,
             ...updatedUser,
-        }));
+        };
+
+        setUser(newUser);
+
+        localStorage.setItem(
+            "auth",
+            JSON.stringify({
+                user: newUser,
+            })
+        );
     };
 
     const value = useMemo(
@@ -57,15 +86,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
-
-// export const useAuthContext = () => {
-//     const context = useContext(AuthContext);
-
-//     if (!context) {
-//         throw new Error(
-//             "useAuthContext must be used inside AuthProvider."
-//         );
-//     }
-
-//     return context;
-// };

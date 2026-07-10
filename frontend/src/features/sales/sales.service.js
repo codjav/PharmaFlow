@@ -33,11 +33,12 @@ const deleteSale = async (id) => {
     return response.data;
 };
 
-const updateSalePayment = async (id, amount) => {
-    const response = await salesApi.updateSalePayment({
-        id,
-        amount,
-    });
+const updateSalePayment = async ({ id, amount }) => {
+    const response =
+        await salesApi.updateSalePayment({
+            id,
+            amount,
+        });
 
     return response.data;
 };

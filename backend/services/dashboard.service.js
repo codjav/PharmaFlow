@@ -159,9 +159,12 @@ export const getTopMedicines = () => {
         FROM sale_items si
         JOIN medicines m
         ON si.medicine_id = m.id
-        GROUP BY m.id
-        ORDER BY quantity_sold DESC
-        LIMIT 10
+        GROUP BY
+            m.id,
+            m.name
+        ORDER BY
+            SUM(si.quantity) DESC
+        LIMIT 10;
     `,
     )
     .all();
