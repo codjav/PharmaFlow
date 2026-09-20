@@ -50,17 +50,17 @@ PharmaFlow is a modern, offline-first medical shop management system designed to
 
 PharmaFlow/
 │
-|
-├── client/ # React frontend
-|
-├── backend/   # Node.js backend
-|
-├── database/    # SQL schema and data
-|
-├── docs/     # Documentation
-|
+# React frontend
+├── client 
+# Node.js backend
+├── backend
+# SQL schema and data
+├── database    
+# Documentation
+├── docs     
+
 ├── .gitignore
-|
+
 └── README.md
 
 ---
